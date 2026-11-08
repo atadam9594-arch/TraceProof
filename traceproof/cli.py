@@ -37,7 +37,7 @@ def main(argv=None):
     x = sub.add_parser("lineage-scan"); x.add_argument("directory")
     x = sub.add_parser("video-analyze"); x.add_argument("video"); x.add_argument("--samples",type=int,default=12)
     x = sub.add_parser("video-compare"); x.add_argument("left"); x.add_argument("right"); x.add_argument("--samples",type=int,default=12); x.add_argument("--html")
-    x = sub.add_parser("video-benchmark"); x.add_argument("manifest"); x.add_argument("--root"); x.add_argument("--samples", type=int, default=12); x.add_argument("--out")
+    x = sub.add_parser("video-benchmark"); x.add_argument("manifest"); x.add_argument("--root"); x.add_argument("--samples", type=int, default=12); x.add_argument("--out"); x.add_argument("--html"); x.add_argument("--no-cache",action="store_true")
     x = sub.add_parser("serve"); x.add_argument("--port", type=int, default=8765)
     sub.add_parser("desktop")
     args = p.parse_args(argv)
@@ -87,7 +87,10 @@ def main(argv=None):
             print(json.dumps(comparison,indent=2))
         elif args.cmd == "video-benchmark":
             from .benchmark import evaluate_manifest
-            result = evaluate_manifest(args.manifest, root=args.root, samples=args.samples)
+            result = evaluate_manifest(args.manifest, root=args.root, samples=args.samples, cache=not args.no_cache)
+            if args.html:
+                from .benchmark_report import write_benchmark_report
+                write_benchmark_report(result,args.html)
             encoded = json.dumps(result, indent=2, ensure_ascii=False)
             if args.out:
                 Path(args.out).write_text(encoded + "\n", encoding="utf-8")
