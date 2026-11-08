@@ -21,3 +21,10 @@ jobs:
       - name: Web assets syntax
         run: |
           node --check traceproof/static/app.js
+          node --check traceproof/static/video.js
+      - name: FFmpeg synthetic regression scenarios (Python 3.12)
+        if: matrix.python-version == '3.12'
+        run: |
+          ffmpeg -version
+          ffprobe -version
+          python scripts/video_regression.py
