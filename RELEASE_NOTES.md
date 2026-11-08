@@ -1,3 +1,14 @@
+# TraceProof v0.14.0 — Video Network and portable FFmpeg registration
+
+- New offline `video-network` CLI analyzes 2–12 videos (up to 250 MB each / 1 GB combined), computing fingerprints once and producing candidate relationship links for up to 66 pairs. Failures, exact byte matches, unresolved pairs and connected groups are reported explicitly.
+- New `--out network.json --html network.html` exports JSON and a **script-free, offline SVG/HTML relationship diagram** with HTML-escaped filenames and strict report validation. No original video is exported.
+- New `/network` viewer renders saved JSON locally in English, Turkish and Spanish. No file is uploaded to the app server; browser DOM uses `textContent`, not untrusted HTML.
+- Windows `TraceProof.exe` now supports selected offline CLI commands, including `ffmpeg-register --dir PATH` and `ffmpeg-forget`. Per-user configuration remembers the trusted FFmpeg directory without PATH edits, Python installation, or automatic executable downloads. Registration verifies tools by executing their `-version` commands. Use only trusted software.
+- Added deterministic duplicate/similarity/negative/error tests and an FFmpeg-generated end-to-end video network regression with an unrelated-content negative control. GitHub verifies CLI commands and localhost pages in the packaged Windows executable.
+- Scope remains **open-source research preview**, not forensic certification, source authentication, an AI detector, or a real-world benchmark accuracy guarantee. FFmpeg is not included in the binary; Windows builds are unsigned.
+
+---
+
 # TraceProof v0.13.0 — FFmpeg Setup Lab and Auditable Dataset Gate
 
 - English/Turkish/Spanish Setup Lab at `/setup` checks ffmpeg/ffprobe execution and Pillow installation locally without network or automatic installation.
