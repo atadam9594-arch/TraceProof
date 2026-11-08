@@ -1,0 +1,122 @@
+{
+  "events": [
+    {
+      "action": "case_created",
+      "hash": "c42eb11743aa0bfbb4fcb350d2894041002e3c7274d01a90ba5d5252fa759b8f",
+      "payload": {
+        "subject": "Can an online image be trusted as a record of its claimed event?"
+      },
+      "previous": "0000000000000000000000000000000000000000000000000000000000000000",
+      "seq": 0,
+      "time": "2026-11-08T14:37:17.990630Z"
+    },
+    {
+      "action": "artifact_added",
+      "hash": "afeb48246b12cd352f5c9dde1b8430cd118c78335cc979d9a56724f3105533ae",
+      "payload": {
+        "id": "media1",
+        "media_type": "image/jpeg",
+        "name": "example-image.jpg",
+        "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "size": 1284
+      },
+      "previous": "c42eb11743aa0bfbb4fcb350d2894041002e3c7274d01a90ba5d5252fa759b8f",
+      "seq": 1,
+      "time": "2026-11-08T14:37:17.990789Z"
+    },
+    {
+      "action": "claim_added",
+      "hash": "16867335d04b001769ca0bd536a53fc15e0768b68b2d8f87621bdc2e635e73ec",
+      "payload": {
+        "id": "origin1",
+        "kind": "provenance",
+        "statement": "The image was made at the time and place claimed in a post"
+      },
+      "previous": "afeb48246b12cd352f5c9dde1b8430cd118c78335cc979d9a56724f3105533ae",
+      "seq": 2,
+      "time": "2026-11-08T14:37:17.990876Z"
+    },
+    {
+      "action": "observation_added",
+      "hash": "442e752e7639579b415acdd9963b5d7ce62f8e36b570270b09ac859a27133b93",
+      "payload": {
+        "artifact_id": "media1",
+        "claim_id": "origin1",
+        "details": {
+          "note": "The uploader states this is a direct camera capture; not independently verified."
+        },
+        "id": "source1",
+        "source": "Social-media caption",
+        "state": "supports",
+        "trust": "unverified"
+      },
+      "previous": "16867335d04b001769ca0bd536a53fc15e0768b68b2d8f87621bdc2e635e73ec",
+      "seq": 3,
+      "time": "2026-11-08T14:37:17.990984Z"
+    },
+    {
+      "action": "observation_added",
+      "hash": "b9faa108d4550a7eda85e52dda997b522672e13d7d73a73390ee33383c9315f4",
+      "payload": {
+        "artifact_id": "media1",
+        "claim_id": "origin1",
+        "details": {
+          "note": "The original and capture chain have not been produced; absence alone is not proof of fakery."
+        },
+        "id": "source2",
+        "source": "Missing original upload",
+        "state": "contradicts",
+        "trust": "contextual"
+      },
+      "previous": "442e752e7639579b415acdd9963b5d7ce62f8e36b570270b09ac859a27133b93",
+      "seq": 4,
+      "time": "2026-11-08T14:37:17.991158Z"
+    }
+  ],
+  "format": "traceproof.case.v3",
+  "state": {
+    "artifacts": [
+      {
+        "id": "media1",
+        "media_type": "image/jpeg",
+        "name": "example-image.jpg",
+        "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "size": 1284
+      }
+    ],
+    "claims": [
+      {
+        "id": "origin1",
+        "kind": "provenance",
+        "statement": "The image was made at the time and place claimed in a post"
+      }
+    ],
+    "observations": [
+      {
+        "artifact_id": "media1",
+        "claim_id": "origin1",
+        "details": {
+          "note": "The uploader states this is a direct camera capture; not independently verified."
+        },
+        "id": "source1",
+        "source": "Social-media caption",
+        "state": "supports",
+        "trust": "unverified"
+      },
+      {
+        "artifact_id": "media1",
+        "claim_id": "origin1",
+        "details": {
+          "note": "The original and capture chain have not been produced; absence alone is not proof of fakery."
+        },
+        "id": "source2",
+        "source": "Missing original upload",
+        "state": "contradicts",
+        "trust": "contextual"
+      }
+    ],
+    "reports": [],
+    "schema": "traceproof.case.v3",
+    "subject": "Can an online image be trusted as a record of its claimed event?"
+  }
+}
