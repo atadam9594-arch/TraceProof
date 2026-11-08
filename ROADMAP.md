@@ -51,3 +51,15 @@ The product is **not** an "all media, 99.9% accurate" classifier. It is a falsif
 - `python -m traceproof lineage-scan folder/` identifies exact and normalized-text duplicate groups in a local folder.
 - No upload; no inferred authorship, chronological order, or image perceptual match.
 - Similarity candidates are explicitly *not* independently verified provenance.
+
+## v0.13 milestone
+
+- Local system diagnostics, portable FFmpeg binary discovery and multilingual Setup Lab.
+- Dataset integrity manifest and a benchmark audit gate that requires exact hash matches and curator rights assertions.
+- Synthetic regression exercises file tampering, but there is still no independently sourced representative licensed video corpus or external scientific validation.
+
+## Next validation gates
+
+- Independently documented, licensed and consent-aware real-world video pairs with disjoint source-level test splits.
+- Field testing on multiple Windows configurations, accessible visual interface, installer signing and independent security assessment.
+- Decoding cancellation improvements, bounded memory and automated FFmpeg license compliance guidance.
