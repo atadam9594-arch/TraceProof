@@ -1,3 +1,11 @@
+# TraceProof v0.11.1 — Video Lab display hotfix
+
+- Fix Video Lab HTTP content type: `/video` now sends `text/html` rather than `text/css`, and the correct MIME type is covered by integration tests.
+- Rebuild Windows executable with full large-video handling, streaming upload progress, multilingual UI, cancellation, secure session storage and 250 MB limits introduced in v0.11.0.
+- Unit and synthetic end-to-end tests verify the local HTTP flow. No independent false-match calibration or forensic certification is claimed.
+
+---
+
 # TraceProof v0.11.0 — Large-file local Video Lab
 
 Released as an **unsigned Windows desktop preview** and open-source Python application.
