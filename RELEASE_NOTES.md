@@ -1,3 +1,14 @@
+# TraceProof v0.13.0 — FFmpeg Setup Lab and Auditable Dataset Gate
+
+- English/Turkish/Spanish Setup Lab at `/setup` checks ffmpeg/ffprobe execution and Pillow installation locally without network or automatic installation.
+- `traceproof doctor [--json] [--check]` provides portable diagnostics; `TRACEPROOF_FFMPEG_DIR` supports trusted custom binary directories without PATH edits.
+- Dataset Audit verifies declared file SHA-256 hashes, rejects symlinks and directory traversal, checks audit/benchmark pair coverage, and records curator-asserted licensing metadata. It does NOT verify actual rights, source URLs, consent or ground-truth quality.
+- `video-benchmark --audit-dataset FILE` rejects failed audits and embeds the audit manifest digest in the output for traceability.
+- New tests exercise missing FFmpeg, timeouts, localhost Setup page, integrity mismatches, incomplete pair coverage and the fail-closed benchmark gate. Synthetic end-to-end FFmpeg scenario verifies detection of file tampering.
+- Windows executable is unsigned, and external FFmpeg is not bundled. No claim of certified forensic accuracy or AI authorship detection.
+
+---
+
 # TraceProof v0.12.0 — Benchmark Lab and repeatable evaluation
 
 - New browser-based **Benchmark Lab** for visualizing independently labeled video-pair results; English, Turkish and Spanish. Reads local JSON without sending it to any server.
