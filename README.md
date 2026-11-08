@@ -3,13 +3,13 @@
 [![Verify ProofGraph](https://github.com/atadam9594-arch/TraceProof/actions/workflows/tests.yml/badge.svg)](https://github.com/atadam9594-arch/TraceProof/actions/workflows/tests.yml)
 [![Windows preview](https://github.com/atadam9594-arch/TraceProof/actions/workflows/windows-desktop.yml/badge.svg)](https://github.com/atadam9594-arch/TraceProof/actions/workflows/windows-desktop.yml)
 
-**Latest preview: v0.11.1** · Python 3.10+ · MIT license · Offline-first · English / Türkçe / Español
+**Latest preview: v0.12.0** · Python 3.10+ · MIT license · Offline-first · English / Türkçe / Español
 
 TraceProof builds portable evidence records and discovers **candidate relationships** between local files and videos. It does not claim to determine whether a file is “real,” created by AI, authentic, original, or legally admissible. Exact hashes, heuristic similarity, and independently trusted attestations are distinct kinds of evidence.
 
 ## Download and launch
 
-**Windows preview:** [TraceProof v0.11.1 — GitHub Releases](https://github.com/atadam9594-arch/TraceProof/releases/tag/v0.11.1)
+**Windows preview:** [TraceProof v0.12.0 — GitHub Releases](https://github.com/atadam9594-arch/TraceProof/releases/tag/v0.12.0)
 
 Download `TraceProof.exe` and optionally check it against `TraceProof.exe.sha256`. Double-click the executable; it starts a **local-only** service and opens a browser tab. Close the console to stop it. The preview is **unsigned** and is not a Windows installer; SmartScreen warnings are possible. Video decoding requires **FFmpeg and ffprobe separately installed** and available on PATH. Pillow is included in the Windows build.
 
@@ -34,9 +34,25 @@ Alternatively, `python -m traceproof serve` serves the workspace at `http://127.
 | Relationship graph | Search for exact / similar relations in selected local files | Definitive provenance links |
 | Video Lab | Compare two local MP4/MOV/MKV/WebM videos using bounded, sampled frame fingerprints | Forensic certification, AI authorship or edit detection |
 
-**Video Lab v0.11.1** accepts up to **250 MB per file**, transferred to the server **on the same computer** in **1 MiB chunks** rather than loading whole videos into browser memory. Its progress percentage describes **local file transfer only**, not completion of video analysis. Jobs report analyzing/done/failed states; cancellation is supported. Source videos are staged in temporary storage and removed after the job ends. Cancelling a running decoder does not guarantee immediate interruption; its temporary media is removed when that decoder finishes. A single concurrent staging/analysis session is allowed. Session staging expires after 30 minutes of inactivity when a subsequent request triggers cleanup, or on normal process exit. Availability checks report whether FFmpeg, ffprobe and Pillow are installed.
+**Video Lab v0.12.0** accepts up to **250 MB per file**, transferred to the server **on the same computer** in **1 MiB chunks** rather than loading whole videos into browser memory. Its progress percentage describes **local file transfer only**, not completion of video analysis. Jobs report analyzing/done/failed states; cancellation is supported. Source videos are staged in temporary storage and removed after the job ends. Cancelling a running decoder does not guarantee immediate interruption; its temporary media is removed when that decoder finishes. A single concurrent staging/analysis session is allowed. Session staging expires after 30 minutes of inactivity when a subsequent request triggers cleanup, or on normal process exit. Availability checks report whether FFmpeg, ffprobe and Pillow are installed.
 
 The similarity engine hashes entire files for `byte_identical`, filters low-information frames, and requires at least two informative and visually distinct matches in chronological order before reporting a `video_similarity_candidate`. This is an **uncalibrated heuristic**, not a statistical accuracy guarantee. Sparse sampling may miss changes and yield false matches. Some codecs/videos cannot be decoded.
+
+## Benchmark Lab — measurable uncertainty (v0.12.0)
+
+An offline benchmark engine helps test **candidate video-overlap** predictions against user-labeled pairs. It does **not** estimate AI authorship or universal media authenticity.
+
+```bash
+python -m traceproof video-benchmark ./dataset/manifest.json --samples 12 --out result.json --html report.html
+# Optional: --no-cache to force re-decoding for performance studies
+python -m traceproof desktop
+```
+
+Then open **/benchmark** in the TraceProof local app to inspect `result.json` in the English/Turkish/Spanish Benchmark Lab. The dashboard reads the JSON **inside the browser** without posting it to a server. The HTML report is standalone, uses no scripts, escapes displayed values, and excludes video paths.
+
+In a 100-pair manifest, each unique video is normally decoded once per run, improving repeated-source datasets without changing the matching thresholds. Per-group confusion counts, precision, recall, false-positive rate and **95% Wilson intervals** are reported; decoding failures lower *coverage*. Intervals do not correct selection bias, mislabeled data, correlated pairs or dataset drift. The included tests are **synthetic**, not a representative real-world benchmark.
+
+See [the benchmark guide](docs/BENCHMARK.md) for manifest format and interpretation limits.
 
 ## Command-line examples
 
