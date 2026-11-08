@@ -1,3 +1,13 @@
+# Current milestone: v0.14.0 (delivered)
+
+- Local multi-video relationship network (2–12 videos), bounded resource usage, cached one-pass fingerprints, and exact/heuristic edge distinction.
+- Script-free standalone SVG diagram, multilingual browser network JSON viewer, and synthetic FFmpeg end-to-end regression with negative controls.
+- Per-user trusted FFmpeg directory registration available from the Windows `.exe`; no automatic downloads or silent code execution.
+
+**Next high-value gates:** genuinely independent, licensed dataset labels and out-of-distribution evaluation; cross-platform signed native desktop installers; user-friendly trusted FFmpeg provisioning with licensing review; interruptible FFmpeg worker cancellation; explicit memory/disk and supply-chain security audit. Current tests do not establish real-world false-match rates.
+
+---
+
 # v0.12.0 state and upcoming work
 
 **Delivered:** Data-set-scoped video overlap evaluation with in-memory reuse of per-video fingerprints, group metrics, Wilson confidence intervals, HTML report and multilingual local Benchmark Lab. Candidate relationships remain hypotheses, not provenance or AI-authorship decisions.
