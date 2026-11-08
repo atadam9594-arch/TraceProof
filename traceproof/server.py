@@ -59,7 +59,7 @@ class Handler(BaseHTTPRequestHandler):
         if path not in files:
             return self._reply(404, {"error": "Not found"})
         blob = (STATIC / files[path]).read_bytes()
-        mime = "text/html; charset=utf-8" if path == "/" else "text/javascript; charset=utf-8" if path.endswith(".js") else "text/css; charset=utf-8"
+        mime = "text/html; charset=utf-8" if path in ("/", "/video") else "text/javascript; charset=utf-8" if path.endswith(".js") else "text/css; charset=utf-8"
         self._headers(200, mime, len(blob))
         self.wfile.write(blob)
 
