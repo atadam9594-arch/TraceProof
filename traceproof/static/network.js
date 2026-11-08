@@ -1,0 +1,38 @@
+'use strict';
+const $=id=>document.getElementById(id), ns='http://www.w3.org/2000/svg';
+const I={
+ en:{heading:'Video relationship network',intro:'Inspect candidate links in a batch of videos. Import a local JSON result; no file is uploaded to a server.',importHeading:'Open network report',importText:'Create a report with: traceproof video-network VIDEOS --out network.json --html network.html',privacy:'All parsing and drawing happen in your browser. Names and hashes may be sensitive; review exports before sharing.',summaryHeading:'Summary',graphHeading:'Candidate relationship graph',exactLegend:'Exact bytes',similarLegend:'Candidate overlap',caveat:'A link does not prove origin, authenticity, modification, direction or AI authorship. No link means unresolved, not unrelated.',edgesHeading:'Candidate connections',save:'Export SVG diagram',idle:'No graph loaded.',noEdges:'No candidate connections. Unresolved is not evidence of unrelated clips.',invalid:'Invalid or oversized video network report.',ready:'Local report loaded.',stats:['Videos','Analyzed','Candidate links','Unresolved pairs','Decoding errors','Groups']},
+ tr:{heading:'Video ilişki ağı',intro:'Bir video grubundaki olası ilişkileri inceleyin. Yerel JSON raporu içeri alın; sunucuya dosya gönderilmez.',importHeading:'İlişki raporunu aç',importText:'Rapor oluşturun: traceproof video-network VIDEOS --out network.json --html network.html',privacy:'JSON tarayıcınızda okunur ve çizilir. Dosya adları ve özetler hassas olabilir; paylaşmadan önce inceleyin.',summaryHeading:'Özet',graphHeading:'Olası video ilişki grafiği',exactLegend:'Aynı dosya baytları',similarLegend:'Benzerlik adayı',caveat:'Bağlantı kaynak, özgünlük, düzenleme, yön veya yapay zekâ üretimi kanıtı değildir. Bağlantı olmaması, ilişkisiz oldukları anlamına gelmez.',edgesHeading:'Olası bağlantılar',save:'SVG grafiğini dışa aktar',idle:'Grafik yüklenmedi.',noEdges:'Olası bağlantı bulunamadı. Belirsiz sonuç ilişkisiz anlamına gelmez.',invalid:'Geçersiz veya çok büyük video ilişki raporu.',ready:'Yerel rapor açıldı.',stats:['Videolar','Analiz edilen','Olası bağlantı','Belirsiz çift','Çözümleme hatası','Gruplar']},
+ es:{heading:'Red de relaciones de video',intro:'Explore conexiones posibles en varios videos. Importe un resultado JSON local; ningún archivo se sube al servidor.',importHeading:'Abrir informe',importText:'Cree un informe: traceproof video-network VIDEOS --out network.json --html network.html',privacy:'El análisis del JSON y su visualización se hacen en el navegador. Los nombres y hashes pueden ser sensibles.',summaryHeading:'Resumen',graphHeading:'Grafo de posibles relaciones',exactLegend:'Bytes idénticos',similarLegend:'Posible similitud',caveat:'Una conexión no prueba origen, autenticidad, edición, dirección ni autoría por IA. Sin conexión significa inconcluso.',edgesHeading:'Conexiones posibles',save:'Exportar diagrama SVG',idle:'No se ha cargado ningún grafo.',noEdges:'No se encontraron conexiones. Inconcluso no significa que sean independientes.',invalid:'Informe inválido o demasiado grande.',ready:'Informe local cargado.',stats:['Videos','Analizados','Conexiones','Pares sin resolver','Errores de decodificación','Grupos']}
+};
+let current=null,svg=null;
+const t=()=>I[$('lang').value]||I.en;
+function valid(d){if(!d||d.schema!=='traceproof.video.network.v1'||!Array.isArray(d.nodes)||!Array.isArray(d.edges)||!d.summary||d.nodes.length<2||d.nodes.length>12||d.edges.length>66)throw Error('schema');const ids=new Set();for(const node of d.nodes){if(!node||typeof node.id!=='string'||!/^v\d{3}$/.test(node.id)||ids.has(node.id)||typeof node.name!=='string'||node.name.length<1||node.name.length>240)throw Error('node');ids.add(node.id);}const pairs=new Set();for(const e of d.edges){if(!e||!ids.has(e.source)||!ids.has(e.target)||e.source===e.target||!['byte_identical','video_similarity_candidate'].includes(e.relation))throw Error('edge');const pair=[e.source,e.target].sort().join('/');if(pairs.has(pair))throw Error('duplicate');pairs.add(pair);}return d;}
+function node(tag,attrs,text){const el=document.createElementNS(ns,tag);for(const [k,v] of Object.entries(attrs||{}))el.setAttribute(k,String(v));if(text!==undefined)el.textContent=String(text);return el;}
+function draw(d){const w=1000,h=820,loc={};svg=node('svg',{xmlns:ns,viewBox:`0 0 ${w} ${h}`,'aria-label':'Video relationship graph',role:'img'});d.nodes.forEach((item,i)=>{const theta=Math.PI*2*i/d.nodes.length-Math.PI/2;loc[item.id]=[w/2+365*Math.cos(theta),h/2+285*Math.sin(theta)];});for(const e of d.edges){const a=loc[e.source],b=loc[e.target];svg.append(node('line',{x1:a[0],y1:a[1],x2:b[0],y2:b[1],stroke:e.relation==='byte_identical'?'#4ade80':'#fbbf24','stroke-width':3,opacity:0.85}));}for(const item of d.nodes){const [x,y]=loc[item.id];svg.append(node('circle',{cx:x,cy:y,r:32,fill:item.status==='decode_error'?'#5a5061':'#125683',stroke:'#b4d6f5','stroke-width':2}));svg.append(node('text',{x,y:y+5,'text-anchor':'middle',fill:'#fff','font-size':15},item.id));svg.append(node('text',{x,y:y+50,'text-anchor':'middle',fill:'#d9edff','font-size':12},item.name.length>29?item.name.slice(0,26)+'…':item.name));} $('drawing').replaceChildren(svg);}
+function render(){
+ const tx=t();if(!current)return;
+ const s=current.summary;
+ const keys=['videos','analyzed','candidate_edges','unresolved_pairs','decode_errors','connected_groups'];
+ $('summary').replaceChildren();
+ for(let i=0;i<keys.length;i++){
+   const box=document.createElement('div');box.className='stat';
+   const strong=document.createElement('strong');strong.textContent=String(Number.isInteger(s[keys[i]])?s[keys[i]]:'—');
+   const label=document.createElement('span');label.textContent=tx.stats[i];box.append(strong,label);$('summary').append(box);
+ }
+ draw(current);
+ $('edges').replaceChildren();
+ if(!current.edges.length){const e=document.createElement('p');e.className='smallmuted';e.textContent=tx.noEdges;$('edges').append(e);}
+ for(const edge of current.edges){
+   const e=document.createElement('div');e.className='edge';
+   const title=document.createElement('strong');title.textContent=edge.source+' ↔ '+edge.target;
+   const info=document.createElement('span');info.textContent=edge.relation==='byte_identical'?tx.exactLegend:tx.similarLegend;
+   e.append(title,info);$('edges').append(e);
+ }
+ $('status').textContent=tx.ready;$('save').disabled=false;
+}
+function translate(){const tx=t();document.documentElement.lang=$('lang').value;for(const key of ['heading','intro','importHeading','importText','privacy','summaryHeading','graphHeading','exactLegend','similarLegend','caveat','edgesHeading','save'])$(key).textContent=tx[key];if(current)render();else $('status').textContent=tx.idle;}
+$('lang').addEventListener('change',translate);
+$('report').addEventListener('change',async()=>{const file=$('report').files[0];current=null;svg=null;$('save').disabled=true;$('summary').replaceChildren();$('drawing').replaceChildren();$('edges').replaceChildren();if(!file)return;try{if(file.size>1000000)throw Error('size');current=valid(JSON.parse(await file.text()));render();}catch(e){current=null;$('status').textContent=t().invalid;}});
+$('save').addEventListener('click',()=>{if(!svg)return;const serialized=new XMLSerializer().serializeToString(svg),u=URL.createObjectURL(new Blob([serialized],{type:'image/svg+xml'}));const a=document.createElement('a');a.href=u;a.download='traceproof-video-network.svg';a.click();setTimeout(()=>URL.revokeObjectURL(u),1500);});
+translate();
