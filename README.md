@@ -1,8 +1,8 @@
-# TraceProof — ProofGraph v0.3.0
+# TraceProof — ProofGraph v0.8.0
 
 **Evidence-first verification, not a magical AI-detector percentage.**
 
-ProofGraph is a new, stand-alone **v0.3 companion module** for the earlier TraceProof AI v0.2.0 prototype. The earlier source ZIP was located but could not be materialized in this session, so v0.2's original C2PA/Ed25519/Smaug implementation has **not** been copied, modified, or retested. The companion runs on its own and can register v0.2 JSON reports by hash without pretending to have cryptographically re-verified them. It adds:
+ProofGraph is an independently runnable **v0.8.0 companion module** for the earlier TraceProof AI v0.2.0 prototype. The earlier source ZIP was located but could not be materialized in this session, so v0.2's original C2PA/Ed25519/Smaug implementation has **not** been copied, modified, or retested. The companion runs on its own and can register v0.2 JSON reports by hash without pretending to have cryptographically re-verified them. It adds:
 
 1. **Event-sourced ProofGraph.** Every case event hashes the previous event; replay independently checks the chain *and* reconstructs the case snapshot.
 2. **Counter-evidence.** Each claim shows supporting observations, contradicting observations, and unanswered questions. Conflicting observations remain "contested" rather than being averaged into a confident-looking number.
@@ -14,7 +14,8 @@ ProofGraph is a new, stand-alone **v0.3 companion module** for the earlier Trace
 ## Run (Python 3.10+)
 
 ```bash
-cd TraceProof-v0.3.0
+git clone https://github.com/atadam9594-arch/TraceProof.git
+cd TraceProof
 python -m traceproof serve
 ```
 
@@ -89,4 +90,17 @@ Install `pip install Pillow` to enable 64-bit dHash comparison of PNG/JPEG/WebP/
 `python -m traceproof compare image1.png image2.jpg` reports an `image_similarity_candidate`
 when Hamming distance is <=6. `python -m traceproof lineage-scan DIR` includes these candidate edges.
 This is a **heuristic**, not proof of origin, editing direction, authorship, or authenticity.
-It does not yet reliably detect crops, composites or video-derived frames.
+Crop matching is heuristic and limited; it cannot reliably determine the editing direction or detect composites. Video frame sampling is available separately using FFmpeg.
+
+## v0.8.0: local comparison, lineage and video sampling
+
+- Compare two files: `python -m traceproof compare path/to/a path/to/b`.
+- Scan a directory for candidate relationships: `python -m traceproof lineage-scan DIR`.
+- Sample local video frames (requires FFmpeg and ffprobe on PATH): `python -m traceproof video-analyze video.mp4`.
+- Compare candidate video frame overlaps: `python -m traceproof video-compare first.mp4 second.mp4`.
+- Launch the English-first local UI (language selector includes Turkish and Spanish): `python -m traceproof serve`.
+- For image comparison install `python -m pip install -e '.[images]'`; for signing use `python -m pip install -e '.[signing]'`.
+
+Similarity candidates and sampled-frame matches **do not establish source, chronology, provenance, alteration or AI authorship**. These functions are investigative leads only. Optional dependencies, native installers, desktop packaging and independent benchmarks remain future work.
+
+Current state: **public pre-release source**, not a certified forensic tool. The v0.2 AI-analysis prototype is **not** bundled in this repository.
