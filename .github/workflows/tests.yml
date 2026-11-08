@@ -31,3 +31,4 @@ jobs:
           ffprobe -version
           python scripts/video_regression.py
           python scripts/upload_regression.py
+          python scripts/benchmark_regression.py
