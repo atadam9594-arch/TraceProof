@@ -39,6 +39,9 @@ def main(argv=None):
     x = sub.add_parser("video-compare"); x.add_argument("left"); x.add_argument("right"); x.add_argument("--samples",type=int,default=12); x.add_argument("--html")
     x = sub.add_parser("video-benchmark"); x.add_argument("manifest"); x.add_argument("--root"); x.add_argument("--samples", type=int, default=12); x.add_argument("--out"); x.add_argument("--html"); x.add_argument("--no-cache",action="store_true"); x.add_argument("--audit-dataset")
     x = sub.add_parser("dataset-audit"); x.add_argument("audit"); x.add_argument("--root"); x.add_argument("--benchmark-manifest"); x.add_argument("--out")
+    x = sub.add_parser("video-network"); x.add_argument("directory"); x.add_argument("--samples", type=int, default=8); x.add_argument("--max-videos", type=int, default=12); x.add_argument("--out"); x.add_argument("--html")
+    x = sub.add_parser("ffmpeg-register"); x.add_argument("--dir", required=True)
+    sub.add_parser("ffmpeg-forget")
     x = sub.add_parser("doctor"); x.add_argument("--json", action="store_true"); x.add_argument("--check", action="store_true")
     x = sub.add_parser("serve"); x.add_argument("--port", type=int, default=8765)
     sub.add_parser("desktop")
@@ -121,6 +124,20 @@ def main(argv=None):
             print(encoded)
             if not report["ok"]:
                 return 2
+        elif args.cmd == "video-network":
+            from .video_network import scan_video_network, save_network_report
+            graph = scan_video_network(args.directory, samples=args.samples, max_videos=args.max_videos)
+            if args.out:
+                Path(args.out).write_text(json.dumps(graph, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+            if args.html:
+                save_network_report(graph, args.html)
+            print(json.dumps(graph, indent=2, ensure_ascii=False))
+        elif args.cmd == "ffmpeg-register":
+            from .diagnostics import register_ffmpeg_directory
+            print(json.dumps(register_ffmpeg_directory(args.dir), ensure_ascii=False, indent=2))
+        elif args.cmd == "ffmpeg-forget":
+            from .diagnostics import clear_ffmpeg_directory
+            print(json.dumps(clear_ffmpeg_directory()))
         elif args.cmd == "doctor":
             from .diagnostics import diagnose, guidance
             info = diagnose()
