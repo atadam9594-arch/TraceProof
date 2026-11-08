@@ -55,7 +55,12 @@ jobs:
                     $response = Invoke-WebRequest -Uri $url -UseBasicParsing -TimeoutSec 3
                     if ($response.StatusCode -eq 200 -and $response.Content -match "TraceProof") {
                       $video = Invoke-WebRequest -Uri ($url + "video") -UseBasicParsing -TimeoutSec 3
-                      if ($video.StatusCode -eq 200 -and $video.Content -match "Video") {
+                      $script = Invoke-WebRequest -Uri ($url + "video.js") -UseBasicParsing -TimeoutSec 3
+                      $style = Invoke-WebRequest -Uri ($url + "video.css") -UseBasicParsing -TimeoutSec 3
+                      $capabilities = Invoke-RestMethod -Uri ($url + "api/video/capabilities") -TimeoutSec 3
+                      if ($video.StatusCode -eq 200 -and $video.Content -match "Video" -and
+                          $script.StatusCode -eq 200 -and $script.Content -match "api/video/chunk" -and
+                          $style.StatusCode -eq 200 -and $capabilities.max_file_bytes -eq 250000000) {
                         $ready = $true
                         Write-Host "Smoke test passed: $url and video UI reachable"
                         break
@@ -92,7 +97,7 @@ jobs:
     permissions:
       contents: write
     concurrency:
-      group: traceproof-v0.10.0-release
+      group: traceproof-v0.11.0-release
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
@@ -107,16 +112,16 @@ jobs:
           set -euo pipefail
           test -s release/TraceProof.exe
           (cd release && sha256sum TraceProof.exe > TraceProof.exe.sha256)
-          if gh release view v0.10.0 >/dev/null 2>&1; then
-            echo "v0.10.0 already published; not replacing released assets"
+          if gh release view v0.11.0 >/dev/null 2>&1; then
+            echo "v0.11.0 already published; not replacing released assets"
             exit 0
           fi
           {
-            echo '# TraceProof v0.10.0 — Windows preview'
+            echo '# TraceProof v0.11.0 — Windows preview'
             echo 'Unsigned early-access build. The packaged app was smoke-tested over localhost before release.'
             echo 'Unzip TraceProof.exe and run it. Closing its console stops the app.'
             echo 'Windows SmartScreen may warn because the executable is not code signed.'
             echo 'FFmpeg and ffprobe are not included and are needed for video analysis.'
             echo 'A SHA-256 checksum is included. Similarity does not prove authenticity or AI authorship.'
           } > release-notes.md
-          gh release create v0.10.0 release/TraceProof.exe release/TraceProof.exe.sha256 --target "$GITHUB_SHA" --title "TraceProof v0.10.0 (preview)" --prerelease --notes-file release-notes.md
+          gh release create v0.11.0 release/TraceProof.exe release/TraceProof.exe.sha256 --target "$GITHUB_SHA" --title "TraceProof v0.11.0 (preview)" --prerelease --notes-file release-notes.md
