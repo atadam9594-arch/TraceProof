@@ -61,11 +61,11 @@ class Handler(BaseHTTPRequestHandler):
                                      "ffmpeg_available": ffmpeg, "pillow_available": pillow,
                                      "max_file_bytes": 250_000_000,
                                      "chunk_bytes": MAX_CHUNK, "max_samples": 16})
-        files = {"/": "index.html", "/app.js": "app.js", "/style.css": "style.css", "/video": "video.html", "/video.js": "video.js", "/video.css": "video.css", "/benchmark": "benchmark.html", "/benchmark.js": "benchmark.js", "/benchmark.css": "benchmark.css", "/setup": "setup.html", "/setup.js": "setup.js", "/setup.css": "setup.css"}
+        files = {"/": "index.html", "/app.js": "app.js", "/style.css": "style.css", "/video": "video.html", "/video.js": "video.js", "/video.css": "video.css", "/benchmark": "benchmark.html", "/benchmark.js": "benchmark.js", "/benchmark.css": "benchmark.css", "/setup": "setup.html", "/setup.js": "setup.js", "/setup.css": "setup.css", "/network": "network.html", "/network.js": "network.js", "/network.css": "network.css"}
         if path not in files:
             return self._reply(404, {"error": "Not found"})
         blob = (STATIC / files[path]).read_bytes()
-        mime = "text/html; charset=utf-8" if path in ("/", "/video", "/benchmark", "/setup") else "text/javascript; charset=utf-8" if path.endswith(".js") else "text/css; charset=utf-8"
+        mime = "text/html; charset=utf-8" if path in ("/", "/video", "/benchmark", "/setup", "/network") else "text/javascript; charset=utf-8" if path.endswith(".js") else "text/css; charset=utf-8"
         self._headers(200, mime, len(blob))
         self.wfile.write(blob)
 
