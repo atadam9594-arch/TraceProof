@@ -58,7 +58,13 @@ jobs:
                       $script = Invoke-WebRequest -Uri ($url + "video.js") -UseBasicParsing -TimeoutSec 3
                       $style = Invoke-WebRequest -Uri ($url + "video.css") -UseBasicParsing -TimeoutSec 3
                       $capabilities = Invoke-RestMethod -Uri ($url + "api/video/capabilities") -TimeoutSec 3
+                      $bench = Invoke-WebRequest -Uri ($url + "benchmark") -UseBasicParsing -TimeoutSec 3
+                      $benchScript = Invoke-WebRequest -Uri ($url + "benchmark.js") -UseBasicParsing -TimeoutSec 3
+                      $benchStyle = Invoke-WebRequest -Uri ($url + "benchmark.css") -UseBasicParsing -TimeoutSec 3
                       if ($video.StatusCode -eq 200 -and $video.Content -match "Video" -and
+                          $bench.StatusCode -eq 200 -and $bench.Content -match "Benchmark Lab" -and
+                          $benchScript.StatusCode -eq 200 -and $benchScript.Content -match "confidence_intervals_95" -and
+                          $benchStyle.StatusCode -eq 200 -and
                           $script.StatusCode -eq 200 -and $script.Content -match "api/video/chunk" -and
                           $style.StatusCode -eq 200 -and $capabilities.max_file_bytes -eq 250000000) {
                         $ready = $true
@@ -97,7 +103,7 @@ jobs:
     permissions:
       contents: write
     concurrency:
-      group: traceproof-v0.11.1-release
+      group: traceproof-v0.12.0-release
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
@@ -112,18 +118,20 @@ jobs:
           set -euo pipefail
           test -s release/TraceProof.exe
           (cd release && sha256sum TraceProof.exe > TraceProof.exe.sha256)
-          if gh release view v0.11.1 >/dev/null 2>&1; then
-            echo "v0.11.1 already published; not replacing released assets"
+          if gh release view v0.12.0 >/dev/null 2>&1; then
+            echo "v0.12.0 already published; not replacing released assets"
             exit 0
           fi
           {
-            echo '# TraceProof v0.11.1 — Windows preview'
+            echo '# TraceProof v0.12.0 — Windows preview'
             echo 'Unsigned early-access build. The packaged app was smoke-tested over localhost before release.'
             echo 'Unzip TraceProof.exe and run it. Closing its console stops the app.'
             echo 'Windows SmartScreen may warn because the executable is not code signed.'
             echo 'FFmpeg and ffprobe are not included and are needed for video analysis.'
             echo 'Video Lab supports up to 250 MB per file in temporary 1 MiB localhost chunks; cancel may wait for decoding to finish.'
-            echo 'This release corrects the /video HTML content type to text/html.'
+            echo 'New multilingual Benchmark Lab: evaluate labeled video overlaps, group errors and Wilson confidence intervals.'
+            echo 'The dashboard reads JSON locally; no dataset is sent to the cloud.'
+            echo 'Video fingerprint caching avoids repeated decoding of the same clip within a benchmark.'
             echo 'A SHA-256 checksum is included. Similarity does not prove authenticity or AI authorship.'
           } > release-notes.md
-          gh release create v0.11.1 release/TraceProof.exe release/TraceProof.exe.sha256 --target "$GITHUB_SHA" --title "TraceProof v0.11.1 (preview)" --prerelease --notes-file release-notes.md
+          gh release create v0.12.0 release/TraceProof.exe release/TraceProof.exe.sha256 --target "$GITHUB_SHA" --title "TraceProof v0.12.0 (preview)" --prerelease --notes-file release-notes.md
