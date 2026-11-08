@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "traceproof-proofgraph"
+version = "0.8.0"
+description = "Privacy-first reproducible digital evidence graphs and portable proof bundles"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+readme = "README.md"
+authors = [{name = "TraceProof contributors"}]
+dependencies = []
+
+[project.optional-dependencies]
+signing = ["cryptography>=42"]
+images = ["Pillow>=10"]
+
+[project.scripts]
+traceproof = "traceproof.cli:main"
+
+[tool.setuptools.package-data]
+traceproof = ["static/*.html", "static/*.css", "static/*.js"]
