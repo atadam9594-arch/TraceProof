@@ -37,7 +37,7 @@ def render_benchmark_report(result):
     rows = []
     for key,label in labels:
         ci = intervals(summary,key) if key in {'precision','recall','false_positive_rate','specificity','accuracy','coverage'} else '—'
-        rows.append(f'<tr><th scope="row">{label}</th><td>{val(summary.get(key),key in {'precision','recall','false_positive_rate','specificity','accuracy','coverage'})}</td><td>{ci}</td></tr>')
+        rows.append(f'<tr><th scope="row">{label}</th><td>{val(summary.get(key),key in {"precision","recall","false_positive_rate","specificity","accuracy","coverage"})}</td><td>{ci}</td></tr>')
     groups_rows = []
     for name, stats in sorted(groups.items()):
         if not isinstance(stats,dict):
