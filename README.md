@@ -1,6 +1,6 @@
 # TraceProof — Evidence-first media analysis
 
-**TraceProof v0.13.0 preview** · Python 3.10+ · MIT open source · English / Türkçe / Español.
+**TraceProof v0.14.0 preview** · Python 3.10+ · MIT open source · English / Türkçe / Español.
 
 TraceProof builds a reusable record of evidence, verifies hashes and signed bundles, and identifies *possible* similarities in text, images and videos. It is **not** an AI-authorship detector, proof of source identity or a certified forensic instrument.
 
@@ -20,6 +20,23 @@ python -m traceproof desktop
 ```
 
 Other commands: `python -m traceproof serve` opens the fixed-port browser UI; `python -m traceproof doctor --check` verifies FFmpeg/ffprobe/Pillow. `--json` provides machine-readable results. Optionally set `TRACEPROOF_FFMPEG_DIR` to a directory containing trusted `ffmpeg` and `ffprobe` executables to avoid changing PATH, then restart TraceProof.
+
+## New in v0.14: Video Network and easier FFmpeg setup
+
+TraceProof can **compare 2–12 local videos in one pass**, building a graph of exactly identical files and *possible* visual overlap. It fingerprints each video once; the graph considers up to 66 pairs without repeated decoding, subject to a 1 GB aggregate and 250 MB per-file limit. It can export JSON, a static script-free HTML/SVG diagram, and a three-language local `/network` viewer that reads JSON **only in your browser**.
+
+Run these commands from the installation directory in PowerShell (or use `python -m traceproof …` with source code):
+
+```powershell
+# Download and extract ffmpeg / ffprobe yourself from a trusted provider first.
+.\TraceProof.exe ffmpeg-register --dir "C:\Tools\ffmpeg\bin"
+.\TraceProof.exe doctor --json
+.\TraceProof.exe video-network "C:\Users\You\Videos\Research" --samples 8 --out network.json --html network.html
+```
+
+The saved FFmpeg directory is **per-user** and does not require modifying PATH or installing Python when using the Windows preview. Running registration will execute the user-selected binaries with `-version`: **never register untrusted executables**. TraceProof does not download or install FFmpeg. Remove your setting with `TraceProof.exe ffmpeg-forget`.
+
+Full [Video Network instructions and limitations](docs/VIDEO_NETWORK.md). These graph links **cannot prove provenance or AI authorship**; all similarity results are uncalibrated research leads.
 
 ## Video Lab
 
@@ -46,10 +63,12 @@ python scripts/video_regression.py
 python scripts/upload_regression.py
 python scripts/benchmark_regression.py
 python scripts/dataset_audit_regression.py
+python scripts/video_network_regression.py
 node --check traceproof/static/app.js
 node --check traceproof/static/video.js
 node --check traceproof/static/benchmark.js
 node --check traceproof/static/setup.js
+node --check traceproof/static/network.js
 ```
 
 FFmpeg/ffprobe and Pillow are required for the video regressions. GitHub Actions tests Python 3.10–3.13; a Windows job creates and smoke-tests the `.exe` before publishing a versioned pre-release.
