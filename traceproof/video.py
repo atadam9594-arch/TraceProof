@@ -45,8 +45,8 @@ def fingerprint_video(path, samples=12):
             "limitations":["Sparse frames can miss edits","Perceptual similarity is not origin proof",
                            "No inference of chronology or edit direction"]}
 
-def compare_videos(left,right,threshold=6):
-    a=fingerprint_video(left);b=fingerprint_video(right)
+def compare_videos(left,right,threshold=6,samples=12):
+    a=fingerprint_video(left,samples=samples);b=fingerprint_video(right,samples=samples)
     matches=[]
     for x in a["sampled_frames"]:
         candidates=[(image_distance(x["dhash"],y["dhash"]),y)
