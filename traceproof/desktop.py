@@ -20,9 +20,9 @@ def launch(browser_open=webbrowser.open, server_class=ThreadingHTTPServer):
     with server_class(("127.0.0.1", 0), Handler) as server:
         server.daemon_threads = True
         url = f"http://127.0.0.1:{server.server_port}/"
-        print("TraceProof — local workspace")
-        print("Open:", url)
-        print("Close this window to stop the local application.")
+        print("TraceProof — local workspace", flush=True)
+        print("Open:", url, flush=True)
+        print("Close this window to stop the local application.", flush=True)
         threading.Timer(0.4, browser_open, args=(url,)).start()
         try:
             server.serve_forever(poll_interval=.2)
