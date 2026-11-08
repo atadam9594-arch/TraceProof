@@ -32,8 +32,8 @@ class FFmpegRegistrationTests(unittest.TestCase):
         with patch.object(diagnostics,'_version',side_effect=self.fake_version):
             result=diagnostics.register_ffmpeg_directory(self.dir)
         self.assertTrue(result['registered'])
-        self.assertEqual(Path(diagnostics.find_binary('ffmpeg')),self.files[0])
-        self.assertEqual(Path(diagnostics.find_binary('ffprobe')),self.files[1])
+        self.assertEqual(Path(diagnostics.find_binary('ffmpeg')).resolve(),self.files[0].resolve())
+        self.assertEqual(Path(diagnostics.find_binary('ffprobe')).resolve(),self.files[1].resolve())
         doc=diagnostics._config_path().read_text()
         self.assertIn('traceproof.tools.v1',doc)
         if os.name!='nt':self.assertEqual(diagnostics._config_path().stat().st_mode & 0o777,0o600)
