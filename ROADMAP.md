@@ -4,7 +4,7 @@
 
 The product is **not** an "all media, 99.9% accurate" classifier. It is a falsifiable evidence graph that distinguishes verifiable byte integrity, provenance attestations, contextual observations, and unavailable evidence. The differentiation is from reusable verification and well-described uncertainty, not a novel detector score.
 
-## Current: v0.3 (delivered)
+## Historical foundation: v0.3 (delivered)
 - Browser-side SHA-256 with no content upload to cloud.
 - Event-sourced case and independently replayed audit ledger.
 - Portable verifiable ProofBundle with opt-in original attachments and Ed25519 signatures.
@@ -12,7 +12,19 @@ The product is **not** an "all media, 99.9% accurate" classifier. It is a falsif
 - CLI and local UI, EN/TR/ES.
 - Legacy TraceProof v0.2 JSON report hash-attachment (not original report analysis).
 
-## Next: v0.4 — model and provenance interoperability
+## Current: v0.11.1 (Windows preview)
+- Downloadable unsigned Windows executable with local browser workspace and automated GUI-route startup checks.
+- End-to-end 250 MB/video local chunked analysis, temporary staging, progress and cancellation.
+- Comparison analysis uses SHA-256 byte matching plus conservative frame similarity evidence, not authorship probabilities.
+- 104 automated unit/integration tests and synthetic FFmpeg regression suite (not a real-world accuracy benchmark).
+
+## Next priorities
+- Representative independent data set and well-labeled false-positive/false-negative evaluation.
+- Native desktop shell, accessible user experience and code signing; FFmpeg installation assistance.
+- Improve upload resumption, immediate cancel of FFmpeg and automatic cleanup of idle sessions.
+- Reproducible packages, security audit, threat-model verification, multi-platform releases and internationalization coverage.
+
+## Historical planning: v0.4 — model and provenance interoperability
 - Integrate preexisting v0.2 C2PA verifier via explicit adapter with trust-list validation, test vectors and signed-manifest replay.
 - Deterministic import adapters for open-source forensic tooling with provenance of each *tool version* and *verification operation*.
 - Privacy-preserving text similarity and image perceptual similarity fingerprints explicitly labeled non-cryptographic.
