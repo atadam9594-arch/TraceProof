@@ -93,6 +93,20 @@ class VideoBenchmarkTests(unittest.TestCase):
         r=evaluate_manifest(p,comparator=lambda *a,**k:{'relation':'byte_identical'})
         self.assertEqual(r['summary']['errors'],1)
 
+    def test_reject_symlinked_manifest(self):
+        original = self.manifest([self.pair('x','same.mp4','other.mp4',True)])
+        link = self.root / 'link.json'
+        try: link.symlink_to(original)
+        except (OSError, NotImplementedError): self.skipTest('Symlinks unavailable')
+        with self.assertRaises(ValueError): evaluate_manifest(link,comparator=lambda *a,**k:{'relation':'byte_identical'})
+
+    def test_report_contains_manifest_digest_not_paths(self):
+        import hashlib
+        manifest = self.manifest([self.pair('x','same.mp4','other.mp4',True)])
+        result = evaluate_manifest(manifest,comparator=lambda *a,**k:{'relation':'byte_identical'})
+        self.assertEqual(result['manifest_sha256'],hashlib.sha256(manifest.read_bytes()).hexdigest())
+        self.assertNotIn(str(self.root),json.dumps(result))
+
     def test_manifest_with_no_pairs(self):
         with self.assertRaises(ValueError):load_manifest(self.manifest([]))
 
