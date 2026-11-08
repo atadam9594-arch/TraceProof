@@ -1,5 +1,6 @@
-# TraceProof — Evidence-first media analysis
+# TraceProof — AI-origin investigation and evidence
 
+> **Core product goal:** determine whether a submitted text, image, audio clip, video or other digital output contains *evidence of generative-AI creation*, with uncertainty, supporting evidence and known detector limits. As of v0.14, the shipped Windows binary **does not include a general-purpose AI detector**. Work on this capability has started on `main`. Existing hashing, video matching, benchmarking and proof bundles are supporting subsystems, not the end product.\n\n
 **TraceProof v0.14.0 preview** · Python 3.10+ · MIT open source · English / Türkçe / Español.
 
 TraceProof builds a reusable record of evidence, verifies hashes and signed bundles, and identifies *possible* similarities in text, images and videos. It is **not** an AI-authorship detector, proof of source identity or a certified forensic instrument.
@@ -76,3 +77,9 @@ FFmpeg/ffprobe and Pillow are required for the video regressions. GitHub Actions
 ## Limits and open work
 
 TraceProof is a research preview. Signed ProofBundle verification cannot by itself prove real-world identity or trusted timestamps. Unsigned event chains can be recreated by adversaries. Video decoders process untrusted inputs and have not been independently audited. Continue with [Security](SECURITY.md), [Roadmap](ROADMAP.md) and [Release Notes](RELEASE_NOTES.md).
+
+## AI-origin work in progress (source branch; not in v0.14 Windows release)
+
+Use `python -m traceproof ai-check sample.png` to generate a conservative, no-network baseline result with SHA-256. If an independently obtained C2PA JSON report exists, pass `--c2pa-report manifest.json`; imported JSON is explicitly **unverified and not cryptographically bound to the asset**. To run installed `c2patool` directly, explicitly add `--allow-external-provenance` because C2PA tools can automatically request remote manifests. This opt-in may disclose asset-related information to a remote credential server. The command does not transmit source media to TraceProof servers.
+
+The new prototype recognizes AI creation/composite declarations in the **active** C2PA manifest, while distinguishing invalid signatures, unsigned/unbound declarations and insufficient data. Signature validation and publisher identity are not equivalent. **No probability or human-authorship verdict is fabricated.** This is a first evidence adapter, not a classifier for AI-generated images or text. See [AI detection roadmap](docs/AI_ORIGIN.md).
