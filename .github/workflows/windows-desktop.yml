@@ -61,7 +61,14 @@ jobs:
                       $bench = Invoke-WebRequest -Uri ($url + "benchmark") -UseBasicParsing -TimeoutSec 3
                       $benchScript = Invoke-WebRequest -Uri ($url + "benchmark.js") -UseBasicParsing -TimeoutSec 3
                       $benchStyle = Invoke-WebRequest -Uri ($url + "benchmark.css") -UseBasicParsing -TimeoutSec 3
-                      if ($video.StatusCode -eq 200 -and $video.Content -match "Video" -and
+                      $setup = Invoke-WebRequest -Uri ($url + "setup") -UseBasicParsing -TimeoutSec 3
+                      $setupScript = Invoke-WebRequest -Uri ($url + "setup.js") -UseBasicParsing -TimeoutSec 3
+                      $setupStyle = Invoke-WebRequest -Uri ($url + "setup.css") -UseBasicParsing -TimeoutSec 3
+                      $diagnostics = Invoke-RestMethod -Uri ($url + "api/system") -TimeoutSec 12
+                      if ($setup.StatusCode -eq 200 -and $setup.Content -match "Prepare your video tools" -and
+                          $setupScript.StatusCode -eq 200 -and $setupScript.Content -match "diagnostics" -and
+                          $setupStyle.StatusCode -eq 200 -and $diagnostics.schema -eq "traceproof.diagnostics.v1" -and
+                          $video.StatusCode -eq 200 -and $video.Content -match "Video" -and
                           $bench.StatusCode -eq 200 -and $bench.Content -match "Benchmark Lab" -and
                           $benchScript.StatusCode -eq 200 -and $benchScript.Content -match "confidence_intervals_95" -and
                           $benchStyle.StatusCode -eq 200 -and
@@ -103,7 +110,7 @@ jobs:
     permissions:
       contents: write
     concurrency:
-      group: traceproof-v0.12.0-release
+      group: traceproof-v0.13.0-release
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
@@ -118,12 +125,12 @@ jobs:
           set -euo pipefail
           test -s release/TraceProof.exe
           (cd release && sha256sum TraceProof.exe > TraceProof.exe.sha256)
-          if gh release view v0.12.0 >/dev/null 2>&1; then
-            echo "v0.12.0 already published; not replacing released assets"
+          if gh release view v0.13.0 >/dev/null 2>&1; then
+            echo "v0.13.0 already published; not replacing released assets"
             exit 0
           fi
           {
-            echo '# TraceProof v0.12.0 — Windows preview'
+            echo '# TraceProof v0.13.0 — Windows preview'
             echo 'Unsigned early-access build. The packaged app was smoke-tested over localhost before release.'
             echo 'Unzip TraceProof.exe and run it. Closing its console stops the app.'
             echo 'Windows SmartScreen may warn because the executable is not code signed.'
@@ -132,6 +139,8 @@ jobs:
             echo 'New multilingual Benchmark Lab: evaluate labeled video overlaps, group errors and Wilson confidence intervals.'
             echo 'The dashboard reads JSON locally; no dataset is sent to the cloud.'
             echo 'Video fingerprint caching avoids repeated decoding of the same clip within a benchmark.'
+            echo 'New multilingual Setup Lab performs local FFmpeg, ffprobe and Pillow diagnostics, but never downloads programs.'
+            echo 'Dataset Audit checks SHA-256, curator rights assertions and benchmark pair coverage; it does not independently verify licenses.'
             echo 'A SHA-256 checksum is included. Similarity does not prove authenticity or AI authorship.'
           } > release-notes.md
-          gh release create v0.12.0 release/TraceProof.exe release/TraceProof.exe.sha256 --target "$GITHUB_SHA" --title "TraceProof v0.12.0 (preview)" --prerelease --notes-file release-notes.md
+          gh release create v0.13.0 release/TraceProof.exe release/TraceProof.exe.sha256 --target "$GITHUB_SHA" --title "TraceProof v0.13.0 (preview)" --prerelease --notes-file release-notes.md
