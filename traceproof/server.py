@@ -1,21 +1,22 @@
-"""Local-only, stateless HTTP UI. Original media bytes never need to cross HTTP."""
+"""Local-only HTTP UI with bounded, temporary disk-backed video transfers."""
 from __future__ import annotations
 import base64
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
-import tempfile
+import shutil
 from pathlib import Path
 from urllib.parse import urlsplit
 from .bundle import make_bundle, verify_bundle
 from .lineage import compare_bytes, scan_bytes
 from .core import append_event, evaluate, new_case, validate_case, InvalidCase
+from .uploads import manager_for, UploadError, MAX_CHUNK
 
 STATIC = Path(__file__).parent / "static"
 MAX_BODY = 8_000_000
 
 
 class Handler(BaseHTTPRequestHandler):
-    server_version = "TraceProofLocal/0.9"
+    server_version = "TraceProofLocal/0.11"
 
     def _headers(self, status, content_type, size):
         self.send_response(status)
@@ -43,7 +44,18 @@ class Handler(BaseHTTPRequestHandler):
         if not self._valid_origin():
             return self._reply(403, {"error": "Localhost access only"})
         path = urlsplit(self.path).path
-        files = {"/": "index.html", "/app.js": "app.js", "/style.css": "style.css", "/video": "video.html", "/video.js": "video.js"}
+        if path == "/api/video/capabilities":
+            try:
+                import PIL
+                pillow = True
+            except ImportError:
+                pillow = False
+            ffmpeg = bool(shutil.which("ffmpeg") and shutil.which("ffprobe"))
+            return self._reply(200, {"video_analysis_available": ffmpeg and pillow,
+                                     "ffmpeg_available": ffmpeg, "pillow_available": pillow,
+                                     "max_file_bytes": 250_000_000,
+                                     "chunk_bytes": MAX_CHUNK, "max_samples": 16})
+        files = {"/": "index.html", "/app.js": "app.js", "/style.css": "style.css", "/video": "video.html", "/video.js": "video.js", "/video.css": "video.css"}
         if path not in files:
             return self._reply(404, {"error": "Not found"})
         blob = (STATIC / files[path]).read_bytes()
@@ -51,9 +63,33 @@ class Handler(BaseHTTPRequestHandler):
         self._headers(200, mime, len(blob))
         self.wfile.write(blob)
 
+    def _upload_chunk(self):
+        if self.headers.get("Content-Type", "").split(";", 1)[0].strip().lower() != "application/octet-stream":
+            return self._reply(415, {"error": "Binary chunk required"})
+        try:
+            count = int(self.headers.get("Content-Length", "0"))
+            if not 0 < count <= MAX_CHUNK:
+                return self._reply(413, {"error": "Chunk exceeds 1 MiB"})
+            token = self.headers.get("X-TraceProof-Session", "")
+            side = self.headers.get("X-TraceProof-Side", "")
+            offset = int(self.headers.get("X-TraceProof-Offset", "-1"))
+            # Validate session and position before consuming the request body.
+            mgr = manager_for(self.server)
+            data = self.rfile.read(count)
+            if len(data) != count:
+                raise UploadError("Incomplete chunk")
+            return self._reply(200, mgr.chunk(token, side, offset, data))
+        except UploadError as exc:
+            return self._reply(exc.status, {"error": str(exc)[:500]})
+        except (TypeError, ValueError):
+            return self._reply(400, {"error": "Invalid chunk headers"})
+
     def do_POST(self):
         if not self._valid_origin():
             return self._reply(403, {"error": "Cross-origin requests denied"})
+        path = urlsplit(self.path).path
+        if path == "/api/video/chunk":
+            return self._upload_chunk()
         if self.headers.get("Content-Type", "").split(";",1)[0].strip().lower() != "application/json":
             return self._reply(415, {"error": "JSON required"})
         try:
@@ -63,8 +99,15 @@ class Handler(BaseHTTPRequestHandler):
             obj = json.loads(self.rfile.read(length))
             if not isinstance(obj, dict):
                 raise InvalidCase("JSON object expected")
-            path = urlsplit(self.path).path
-            if path == "/api/new":
+            if path == "/api/video/session":
+                result = manager_for(self.server).create(obj)
+            elif path == "/api/video/start":
+                result = manager_for(self.server).begin(obj.get("session"))
+            elif path == "/api/video/status":
+                result = manager_for(self.server).status(obj.get("session"))
+            elif path == "/api/video/cancel":
+                result = manager_for(self.server).cancel(obj.get("session"))
+            elif path == "/api/new":
                 result = new_case(obj.get("subject"))
             elif path == "/api/event":
                 validate_case(obj.get("case"))
@@ -103,6 +146,7 @@ class Handler(BaseHTTPRequestHandler):
             elif path == "/api/video/compare":
                 from .video import compare_videos
                 import shutil
+                import tempfile
                 if not shutil.which("ffmpeg") or not shutil.which("ffprobe"):
                     return self._reply(503, {"error": "FFmpeg and ffprobe must be installed locally"})
                 samples = obj.get("samples", 8)
@@ -113,11 +157,11 @@ class Handler(BaseHTTPRequestHandler):
                     if not isinstance(item, dict):
                         raise ValueError("Two videos are required")
                     name = item.get("name", "")
-                    if not isinstance(name, str) or not name.lower().endswith((".mp4",".mov",".webm",".mkv")):
+                    if not isinstance(name, str) or not name.lower().endswith((".mp4", ".mov", ".webm", ".mkv")):
                         raise ValueError("Unsupported video filename")
                     raw = base64.b64decode(item.get("base64", ""), validate=True)
                     if not 0 < len(raw) <= 2_500_000:
-                        raise ValueError("Each video must be 2.5 MB or smaller for this local UI")
+                        raise ValueError("Each video must be 2.5 MB or smaller for legacy API")
                     return raw
                 left = decode_video("left")
                 right = decode_video("right")
@@ -135,6 +179,8 @@ class Handler(BaseHTTPRequestHandler):
             else:
                 return self._reply(404, {"error": "Unknown endpoint"})
             return self._reply(200, result)
+        except UploadError as e:
+            return self._reply(e.status, {"error": str(e)[:500]})
         except (ValueError, TypeError, KeyError, InvalidCase, RuntimeError) as e:
             return self._reply(400, {"error": str(e)[:500]})
 
