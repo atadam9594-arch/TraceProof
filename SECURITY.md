@@ -21,3 +21,12 @@ Before production deployment: create a monitored security contact, report handli
 The setup endpoint checks local executable readiness using argument-list subprocesses with strict timeouts. It does **not** install packages, read private configuration paths into the JSON report, or invoke a shell. It may execute `ffmpeg`/`ffprobe` found on PATH or explicitly selected using `TRACEPROOF_FFMPEG_DIR`; only point to trusted binaries. The separate official FFmpeg website link is user-initiated.
 
 A dataset audit validates content hashes under a specified root, requires non-symlinked files and no path traversal, and stores curator-provided license/source/rights assertions. A hash verifies exact bytes, **not** permission, informed consent, lawful use, license validity, provenance or label accuracy. HTTPS source URLs are not fetched or verified. Do not interpret a passing audit as permission to distribute media.
+
+
+## Video Network and FFmpeg CLI (v0.14.0)
+
+- `video-network` is an explicit local CLI operation; it reads only supported video extensions from one non-recursive folder, rejects direct symlinks, and limits the input to 12 files, 250 MB/file, and 1 GB combined. FFmpeg still parses untrusted media, so a decoder vulnerability is not eliminated by these limits.
+- Graph JSON exports contain only basenames, hashes and comparison signals, but hashes and basenames may still reveal private information. The standalone HTML report escapes input text and includes no `<script>` or remote resources.
+- Browser graph import uses `File.text()` and DOM text nodes; the JSON does not travel to the local HTTP server. Saved graph files are not proof of the history of their inputs. The report has no digital signature.
+- `ffmpeg-register` executes the selected local tools with `-version` and saves the chosen directory in a per-user local file, atomically with POSIX mode 0600. Registration is initiated explicitly by the user; only select executables from a separately trusted publisher. Preferences are not sent to any cloud service.
+- No SHA-256-only match demonstrates a verified publisher, author, trusted capture time, legal custody, image authenticity or AI authorship; approximate links may be false positives or false negatives.
