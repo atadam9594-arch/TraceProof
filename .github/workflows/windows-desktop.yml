@@ -32,6 +32,50 @@ jobs:
         run: |
           if (!(Test-Path "dist/TraceProof.exe")) { throw "Desktop executable missing" }
           Get-Item "dist/TraceProof.exe" | Select-Object Name, Length
+      - name: Smoke-test packaged executable over localhost
+        shell: pwsh
+        run: |
+          $stdout = Join-Path $env:RUNNER_TEMP "traceproof-out.txt"
+          $stderr = Join-Path $env:RUNNER_TEMP "traceproof-err.txt"
+          $exe = (Resolve-Path "dist/TraceProof.exe").Path
+          $proc = Start-Process -FilePath $exe -PassThru -RedirectStandardOutput $stdout -RedirectStandardError $stderr
+          try {
+            $ready = $false
+            for ($i = 0; $i -lt 45; $i++) {
+              Start-Sleep -Seconds 1
+              $proc.Refresh()
+              if ($proc.HasExited) {
+                throw "The desktop executable exited unexpectedly (exit code $($proc.ExitCode))"
+              }
+              if (Test-Path $stdout) {
+                $log = Get-Content $stdout -Raw
+                if ($log -match 'http://127\\.0\\.0\\.1:\\d+/') {
+                  $url = $Matches[0]
+                  try {
+                    $response = Invoke-WebRequest -Uri $url -UseBasicParsing -TimeoutSec 3
+                    if ($response.StatusCode -eq 200 -and $response.Content -match "TraceProof") {
+                      $video = Invoke-WebRequest -Uri ($url + "video") -UseBasicParsing -TimeoutSec 3
+                      if ($video.StatusCode -eq 200 -and $video.Content -match "Video") {
+                        $ready = $true
+                        Write-Host "Smoke test passed: $url and video UI reachable"
+                        break
+                      }
+                    }
+                  } catch {
+                    Write-Host "Waiting for local HTTP service..."
+                  }
+                }
+              }
+            }
+            if (-not $ready) {
+              if (Test-Path $stdout) { Get-Content $stdout }
+              if (Test-Path $stderr) { Get-Content $stderr }
+              throw "The packaged app did not serve its local UI in time"
+            }
+          } finally {
+            $proc.Refresh()
+            if (-not $proc.HasExited) { Stop-Process -Id $proc.Id -Force }
+          }
       - name: Publish download artifact
         uses: actions/upload-artifact@v4
         with:
