@@ -1,19 +1,16 @@
 # TraceProof — Evidence-first media analysis
 
-[![Verify ProofGraph](https://github.com/atadam9594-arch/TraceProof/actions/workflows/tests.yml/badge.svg)](https://github.com/atadam9594-arch/TraceProof/actions/workflows/tests.yml)
-[![Windows preview](https://github.com/atadam9594-arch/TraceProof/actions/workflows/windows-desktop.yml/badge.svg)](https://github.com/atadam9594-arch/TraceProof/actions/workflows/windows-desktop.yml)
+**TraceProof v0.13.0 preview** · Python 3.10+ · MIT open source · English / Türkçe / Español.
 
-**Latest preview: v0.12.0** · Python 3.10+ · MIT license · Offline-first · English / Türkçe / Español
+TraceProof builds a reusable record of evidence, verifies hashes and signed bundles, and identifies *possible* similarities in text, images and videos. It is **not** an AI-authorship detector, proof of source identity or a certified forensic instrument.
 
-TraceProof builds portable evidence records and discovers **candidate relationships** between local files and videos. It does not claim to determine whether a file is “real,” created by AI, authentic, original, or legally admissible. Exact hashes, heuristic similarity, and independently trusted attestations are distinct kinds of evidence.
+## Run the Windows preview
 
-## Download and launch
+The unsigned Windows preview is published under [GitHub Releases](https://github.com/atadam9594-arch/TraceProof/releases); select the latest verified release, download `TraceProof.exe` and compare its checksum to `TraceProof.exe.sha256`. It starts a local browser-based UI bound to `127.0.0.1`. Close the console to exit. SmartScreen may warn; there is no installer or code-signing certificate.
 
-**Windows preview:** [TraceProof v0.12.0 — GitHub Releases](https://github.com/atadam9594-arch/TraceProof/releases/tag/v0.12.0)
+FFmpeg and ffprobe must be installed **separately** for video decoding. They are not bundled. Open `/setup` in TraceProof for local installation guidance. This page does not download or execute any installers.
 
-Download `TraceProof.exe` and optionally check it against `TraceProof.exe.sha256`. Double-click the executable; it starts a **local-only** service and opens a browser tab. Close the console to stop it. The preview is **unsigned** and is not a Windows installer; SmartScreen warnings are possible. Video decoding requires **FFmpeg and ffprobe separately installed** and available on PATH. Pillow is included in the Windows build.
-
-**Python install** on Windows, Linux, or macOS:
+## Run from source
 
 ```bash
 git clone https://github.com/atadam9594-arch/TraceProof.git
@@ -22,77 +19,41 @@ python -m pip install -e ".[images,signing]"
 python -m traceproof desktop
 ```
 
-Alternatively, `python -m traceproof serve` serves the workspace at `http://127.0.0.1:8765`. The application does **not** connect to a cloud analysis service.
+Other commands: `python -m traceproof serve` opens the fixed-port browser UI; `python -m traceproof doctor --check` verifies FFmpeg/ffprobe/Pillow. `--json` provides machine-readable results. Optionally set `TRACEPROOF_FFMPEG_DIR` to a directory containing trusted `ffmpeg` and `ffprobe` executables to avoid changing PATH, then restart TraceProof.
 
-## Capabilities
+## Video Lab
 
-| Module | What it does | What it cannot establish |
-| --- | --- | --- |
-| ProofGraph | Local SHA-256 evidence registration, event-chain replay and conflicting claim observations | Whether a claim is factually true |
-| ProofBundle | Export/verify ZIP evidence, optional Ed25519 signature and original-file inclusion | Identity of a signer without separately trusted keys; trusted time |
-| File compare | Exact byte matches, normalized text and optional image perceptual hints | Source, authorship or editing direction |
-| Relationship graph | Search for exact / similar relations in selected local files | Definitive provenance links |
-| Video Lab | Compare two local MP4/MOV/MKV/WebM videos using bounded, sampled frame fingerprints | Forensic certification, AI authorship or edit detection |
+Open `/video` to inspect two local MP4/MOV/MKV/WebM files, up to 250 MB each. Video files cross only from the browser to the same computer's loopback HTTP process using 1 MiB chunks and temporary storage, not to cloud servers. Video sample matches are heuristic; they do not establish originality, chronology, editing direction, falsehood or AI authorship. The CLI allows `video-compare`, `video-analyze` and offline HTML report export.
 
-**Video Lab v0.12.0** accepts up to **250 MB per file**, transferred to the server **on the same computer** in **1 MiB chunks** rather than loading whole videos into browser memory. Its progress percentage describes **local file transfer only**, not completion of video analysis. Jobs report analyzing/done/failed states; cancellation is supported. Source videos are staged in temporary storage and removed after the job ends. Cancelling a running decoder does not guarantee immediate interruption; its temporary media is removed when that decoder finishes. A single concurrent staging/analysis session is allowed. Session staging expires after 30 minutes of inactivity when a subsequent request triggers cleanup, or on normal process exit. Availability checks report whether FFmpeg, ffprobe and Pillow are installed.
+## Benchmark Lab and Dataset Audit
 
-The similarity engine hashes entire files for `byte_identical`, filters low-information frames, and requires at least two informative and visually distinct matches in chronological order before reporting a `video_similarity_candidate`. This is an **uncalibrated heuristic**, not a statistical accuracy guarantee. Sparse sampling may miss changes and yield false matches. Some codecs/videos cannot be decoded.
+Open `/benchmark` to visualize JSON evaluation results from *user-labeled* video-pair manifests. The browser does not upload the JSON. Benchmark reports show dataset-specific confusion counts, group breakdowns and 95% Wilson intervals, which are not universal accuracy guarantees.
 
-## Benchmark Lab — measurable uncertainty (v0.12.0)
-
-An offline benchmark engine helps test **candidate video-overlap** predictions against user-labeled pairs. It does **not** estimate AI authorship or universal media authenticity.
+**New in v0.13:** a dataset auditor checks videos against curator-declared SHA-256 values and refuses incomplete coverage, mismatched files or unconfirmed usage rights. It does **not** verify licenses, consent, sources or ground-truth labels; those remain curator assertions. To use a custom licensed data collection:
 
 ```bash
-python -m traceproof video-benchmark ./dataset/manifest.json --samples 12 --out result.json --html report.html
-# Optional: --no-cache to force re-decoding for performance studies
-python -m traceproof desktop
+python -m traceproof dataset-audit audit.json --root ./data --benchmark-manifest pairs.json --out audit-result.json
+python -m traceproof video-benchmark pairs.json --root ./data --audit-dataset audit.json --samples 16 --out evaluation.json --html evaluation.html
 ```
 
-Then open **/benchmark** in the TraceProof local app to inspect `result.json` in the English/Turkish/Spanish Benchmark Lab. The dashboard reads the JSON **inside the browser** without posting it to a server. The HTML report is standalone, uses no scripts, escapes displayed values, and excludes video paths.
+See [Dataset Audit Guide](docs/VIDEO_DATASETS.md) and [Benchmark Guide](docs/BENCHMARK.md). No representative, independently validated third-party corpus is shipped or evaluated; synthetic tests cannot substantiate real-world accuracy.
 
-In a 100-pair manifest, each unique video is normally decoded once per run, improving repeated-source datasets without changing the matching thresholds. Per-group confusion counts, precision, recall, false-positive rate and **95% Wilson intervals** are reported; decoding failures lower *coverage*. Intervals do not correct selection bias, mislabeled data, correlated pairs or dataset drift. The included tests are **synthetic**, not a representative real-world benchmark.
-
-See [the benchmark guide](docs/BENCHMARK.md) for manifest format and interpretation limits.
-
-## Command-line examples
+## Reproducible tests
 
 ```bash
-# Evidence case and bundle
-python -m traceproof new --subject "Was this file modified?" --out case.json
-python -m traceproof add-file --case case.json --file example.png --id source1
-python -m traceproof pack case.json --out proof.zip
-python -m traceproof verify proof.zip
-
-# Relationship inspection
-python -m traceproof compare first.png second.jpg
-python -m traceproof lineage-scan ./samples
-
-# Video comparison and self-contained, escaped offline HTML report
-python -m traceproof video-analyze clip.mp4 --samples 12
-python -m traceproof video-compare clip1.mp4 clip2.mp4 --samples 16 --html comparison.html
-```
-
-Python CLI video analysis accepts videos up to 250 MB and at most 60 minutes (where decodable). Video sampling requires `ffmpeg`, `ffprobe`, and the `Pillow` Python library. HTML comparison reports are **not** signed ProofBundles. Optional signing uses Ed25519 via the `cryptography` extra; trusted signers must be independently verified.
-
-## Security, privacy and limits
-
-- The local HTTP listener binds to **127.0.0.1** and checks Host/Origin. Do not expose it through a public proxy, tunnel or untrusted local access.
-- Video data crosses from your browser to a server **on your own computer**, not to an internet service. Original evidence files registered in ProofGraph are hashed inside the browser; this is a separate workflow.
-- The video staging limit is 2 files × 250 MB and 1 active session. It may require up to roughly 500 MB of free temporary disk space plus decoder overhead. It is not designed for adversarial remote deployment.
-- Case notes, filenames and hashes can be sensitive. Review exports before sharing. A hash can identify membership in known datasets.
-- A valid unsigned event chain can be recreated by anybody. A valid signature without separately trusted key ownership does not prove real-world identity, evidence chronology or authenticity.
-- This is a **pre-release research tool**; it has not passed independent forensic validation, representative false-match benchmarking, accessibility certification or an external security audit.
-
-## Tests and development
-
-```bash
-python -m unittest discover -s tests -v
-python scripts/video_regression.py      # requires FFmpeg + Pillow
-python scripts/upload_regression.py     # requires FFmpeg + Pillow
+python -m unittest discover -s tests -q
+python scripts/video_regression.py
+python scripts/upload_regression.py
+python scripts/benchmark_regression.py
+python scripts/dataset_audit_regression.py
 node --check traceproof/static/app.js
 node --check traceproof/static/video.js
+node --check traceproof/static/benchmark.js
+node --check traceproof/static/setup.js
 ```
 
-GitHub Actions runs tests across Python 3.10–3.13. A separate Windows job builds the unsigned `TraceProof.exe`, starts it and checks localhost pages before publishing the preview.
+FFmpeg/ffprobe and Pillow are required for the video regressions. GitHub Actions tests Python 3.10–3.13; a Windows job creates and smoke-tests the `.exe` before publishing a versioned pre-release.
 
-See [release notes](RELEASE_NOTES.md), [roadmap](ROADMAP.md), [security notes](SECURITY.md) and [license](LICENSE). The older TraceProof AI v0.2 experiment is **not included** or cryptographically revalidated by this companion. Its external reports may only be registered as hashed references.
+## Limits and open work
+
+TraceProof is a research preview. Signed ProofBundle verification cannot by itself prove real-world identity or trusted timestamps. Unsigned event chains can be recreated by adversaries. Video decoders process untrusted inputs and have not been independently audited. Continue with [Security](SECURITY.md), [Roadmap](ROADMAP.md) and [Release Notes](RELEASE_NOTES.md).
