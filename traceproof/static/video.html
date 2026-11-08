@@ -1,1 +1,65 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>TraceProof · Video Lab</title><link rel="stylesheet" href="/style.css"></head><body><div class="app"><header><a class="brand" href="/">◈ TRACEPROOF</a><div class="headright"><a href="/">← ProofGraph</a><select id="lang" aria-label="Language"><option value="en">English</option><option value="tr">Türkçe</option><option value="es">Español</option></select></div></header><main><section class="hero"><div class="eyebrow">LOCAL VIDEO LAB</div><h1 id="heading">Compare video evidence</h1><p id="intro">Sample video frames locally and inspect possible visual overlaps. Similarity is not proof of origin, editing or AI authorship.</p></section><section class="workspace"><div class="left"><div class="panel"><h2 id="choose">Select two short videos</h2><p id="limit" class="smallmuted">Each file must be 2.5 MB or less. FFmpeg and Pillow must be installed locally. Files never leave your computer.</p><div class="fieldgroup"><label for="left" id="leftLabel">First video</label><input id="left" type="file" accept="video/*"><label for="right" id="rightLabel">Second video</label><input id="right" type="file" accept="video/*"><label for="samples" id="samplesLabel">Frames per video</label><select id="samples"><option value="4">4</option><option value="8" selected>8</option><option value="12">12</option><option value="16">16</option></select><button id="run" class="primary">Compare videos</button></div></div></div><div class="right"><div class="panel"><h2 id="resultTitle">Comparison results</h2><p id="status" role="status">No comparison yet.</p><pre id="output" aria-live="polite" style="white-space:pre-wrap;overflow-wrap:anywhere"></pre><button id="save" class="secondary" disabled>Export result JSON</button></div></div></section></main></div><script src="/video.js" defer></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>TraceProof · Video Lab</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/video.css">
+</head>
+<body>
+<div class="app">
+  <header>
+    <a class="brand" href="/">◈ TRACE<span class="accent">PROOF</span><small> / VIDEO LAB</small></a>
+    <div class="headright"><a href="/" id="back">← ProofGraph</a>
+      <select id="lang" aria-label="Language"><option value="en">English</option><option value="tr">Türkçe</option><option value="es">Español</option></select>
+    </div>
+  </header>
+  <main>
+    <section class="hero">
+      <div class="eyebrow">LOCAL-FIRST · NO CLOUD</div>
+      <h1 id="heading">Compare video evidence</h1>
+      <p id="intro">Inspect potential visual overlaps between video files without sending them to an external service. A match is not proof of origin or authenticity.</p>
+    </section>
+    <section class="workspace video-workspace">
+      <div class="left">
+        <div class="panel">
+          <div class="panelhead"><span class="step">01</span><h2 id="choose">Select two videos</h2></div>
+          <p class="smallmuted" id="limit">Up to 250 MB per file; transferred to temporary storage on this computer in 1 MB chunks. FFmpeg and Pillow are required.</p>
+          <div class="fieldgroup">
+            <label for="left" id="leftLabel">First video</label>
+            <input id="left" type="file" accept=".mp4,.mov,.webm,.mkv,video/*">
+            <label for="right" id="rightLabel">Second video</label>
+            <input id="right" type="file" accept=".mp4,.mov,.webm,.mkv,video/*">
+            <label for="samples" id="samplesLabel">Frames sampled per video</label>
+            <select id="samples"><option value="4">4</option><option value="8">8</option><option value="12" selected>12</option><option value="16">16</option></select>
+          </div>
+          <div class="video-actions">
+            <button class="primary" id="run">Analyze videos</button>
+            <button class="secondary" id="cancel" disabled>Cancel</button>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panelhead"><span class="step">02</span><h2 id="progressTitle">Local transfer progress</h2></div>
+          <progress id="progress" max="100" value="0" aria-label="Local file transfer progress"></progress>
+          <p id="progressText" class="smallmuted" role="status" aria-live="polite">Ready to upload on your device</p>
+          <p class="smallmuted" id="privacy">Source videos are discarded when processing finishes or the session is cancelled. Only the comparison report remains temporarily accessible.</p>
+        </div>
+      </div>
+      <div class="right">
+        <div class="panel">
+          <div class="panelhead"><span class="step">03</span><h2 id="resultTitle">Analysis results</h2></div>
+          <p class="smallmuted" id="status" aria-live="polite">No analysis yet.</p>
+          <pre id="output" aria-live="polite"></pre>
+          <button id="save" class="secondary" disabled>Export results (JSON)</button>
+        </div>
+        <div class="panel"><h2 id="limitsHeading">What this analysis can and cannot show</h2><p id="limitsText" class="smallmuted">Frame fingerprints are heuristic. Sparse sampling can miss edits or produce false matches. This tool cannot identify who created a video, determine editing direction or certify that content is AI-generated.</p></div>
+      </div>
+    </section>
+  </main>
+  <footer>TRACEPROOF / VIDEO LAB · MIT</footer>
+</div>
+<script src="/video.js" defer></script>
+</body>
+</html>
