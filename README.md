@@ -104,3 +104,10 @@ Crop matching is heuristic and limited; it cannot reliably determine the editing
 Similarity candidates and sampled-frame matches **do not establish source, chronology, provenance, alteration or AI authorship**. These functions are investigative leads only. Optional dependencies, native installers, desktop packaging and independent benchmarks remain future work.
 
 Current state: **public pre-release source**, not a certified forensic tool. The v0.2 AI-analysis prototype is **not** bundled in this repository.
+
+
+## v0.9.0 — Local Video Lab (pre-release)
+
+Start the local application with `python -m traceproof serve` and open **http://127.0.0.1:8765/video** (or select Video Lab on the home page). The interface supports English, Turkish and Spanish. It compares two short video files by sampling 4–16 frames and reporting perceptual-hash candidate matches. Results can be exported as JSON. The server writes media only to a temporary directory for the duration of comparison and removes those files afterward. No cloud upload is performed.
+
+**Requirements:** Python, Pillow, FFmpeg and ffprobe. Install image support with `python -m pip install -e '.[images]'` and install FFmpeg separately. The web form limits each video to **2.5 MB**, while the command-line video tools support larger local files. The local web server binds to 127.0.0.1; do not expose it to untrusted networks. Sparse frame sampling can miss edits and generate false positives. **No provenance, authenticity, editing direction or AI-generation verdict is implied.**
