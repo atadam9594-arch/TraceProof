@@ -16,7 +16,7 @@ MAX_BODY = 8_000_000
 
 
 class Handler(BaseHTTPRequestHandler):
-    server_version = "TraceProofLocal/0.12"
+    server_version = "TraceProofLocal/0.13"
 
     def _headers(self, status, content_type, size):
         self.send_response(status)
@@ -44,22 +44,28 @@ class Handler(BaseHTTPRequestHandler):
         if not self._valid_origin():
             return self._reply(403, {"error": "Localhost access only"})
         path = urlsplit(self.path).path
+        if path == "/api/system":
+            from .diagnostics import diagnose, guidance
+            report = diagnose()
+            report["guidance"] = guidance(report["platform"])
+            return self._reply(200, report)
         if path == "/api/video/capabilities":
             try:
                 import PIL
                 pillow = True
             except ImportError:
                 pillow = False
-            ffmpeg = bool(shutil.which("ffmpeg") and shutil.which("ffprobe"))
+            from .diagnostics import find_binary
+            ffmpeg = bool(find_binary("ffmpeg") and find_binary("ffprobe"))
             return self._reply(200, {"video_analysis_available": ffmpeg and pillow,
                                      "ffmpeg_available": ffmpeg, "pillow_available": pillow,
                                      "max_file_bytes": 250_000_000,
                                      "chunk_bytes": MAX_CHUNK, "max_samples": 16})
-        files = {"/": "index.html", "/app.js": "app.js", "/style.css": "style.css", "/video": "video.html", "/video.js": "video.js", "/video.css": "video.css", "/benchmark": "benchmark.html", "/benchmark.js": "benchmark.js", "/benchmark.css": "benchmark.css"}
+        files = {"/": "index.html", "/app.js": "app.js", "/style.css": "style.css", "/video": "video.html", "/video.js": "video.js", "/video.css": "video.css", "/benchmark": "benchmark.html", "/benchmark.js": "benchmark.js", "/benchmark.css": "benchmark.css", "/setup": "setup.html", "/setup.js": "setup.js", "/setup.css": "setup.css"}
         if path not in files:
             return self._reply(404, {"error": "Not found"})
         blob = (STATIC / files[path]).read_bytes()
-        mime = "text/html; charset=utf-8" if path in ("/", "/video", "/benchmark") else "text/javascript; charset=utf-8" if path.endswith(".js") else "text/css; charset=utf-8"
+        mime = "text/html; charset=utf-8" if path in ("/", "/video", "/benchmark", "/setup") else "text/javascript; charset=utf-8" if path.endswith(".js") else "text/css; charset=utf-8"
         self._headers(200, mime, len(blob))
         self.wfile.write(blob)
 
@@ -147,7 +153,8 @@ class Handler(BaseHTTPRequestHandler):
                 from .video import compare_videos
                 import shutil
                 import tempfile
-                if not shutil.which("ffmpeg") or not shutil.which("ffprobe"):
+                from .diagnostics import find_binary
+                if not find_binary("ffmpeg") or not find_binary("ffprobe"):
                     return self._reply(503, {"error": "FFmpeg and ffprobe must be installed locally"})
                 samples = obj.get("samples", 8)
                 if type(samples) is not int or not 1 <= samples <= 16:
