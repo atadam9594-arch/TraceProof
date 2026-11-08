@@ -6,6 +6,8 @@ on:
     paths:
       - 'traceproof/**'
       - 'desktop_launcher.py'
+      - 'tests/**'
+      - 'scripts/**'
       - 'pyproject.toml'
       - '.github/workflows/windows-desktop.yml'
 permissions:
