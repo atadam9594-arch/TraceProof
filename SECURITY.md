@@ -30,3 +30,7 @@ A dataset audit validates content hashes under a specified root, requires non-sy
 - Browser graph import uses `File.text()` and DOM text nodes; the JSON does not travel to the local HTTP server. Saved graph files are not proof of the history of their inputs. The report has no digital signature.
 - `ffmpeg-register` executes the selected local tools with `-version` and saves the chosen directory in a per-user local file, atomically with POSIX mode 0600. Registration is initiated explicitly by the user; only select executables from a separately trusted publisher. Preferences are not sent to any cloud service.
 - No SHA-256-only match demonstrates a verified publisher, author, trusted capture time, legal custody, image authenticity or AI authorship; approximate links may be false positives or false negatives.
+
+## AI-origin provenance adapter (development branch)
+
+The experimental `ai-check` command does not run external tools or make network requests by default. Running `c2patool` requires the user's `--allow-external-provenance` flag; c2patool may fetch remotely hosted C2PA credentials. Do not use that option for confidential content without understanding remote retrieval implications. Imported JSON reports are not cryptographically tied to the submitted file and cannot establish its origin. A live C2PA signature status without independently trusted issuer validation is also not proof of real-world identity. No AI-detector scores are currently calibrated or offered by this adapter.
