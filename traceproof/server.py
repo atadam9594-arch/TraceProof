@@ -3,6 +3,7 @@ from __future__ import annotations
 import base64
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
+import tempfile
 from pathlib import Path
 from urllib.parse import urlsplit
 from .bundle import make_bundle, verify_bundle
@@ -14,7 +15,7 @@ MAX_BODY = 8_000_000
 
 
 class Handler(BaseHTTPRequestHandler):
-    server_version = "TraceProofLocal/0.3"
+    server_version = "TraceProofLocal/0.9"
 
     def _headers(self, status, content_type, size):
         self.send_response(status)
@@ -42,7 +43,7 @@ class Handler(BaseHTTPRequestHandler):
         if not self._valid_origin():
             return self._reply(403, {"error": "Localhost access only"})
         path = urlsplit(self.path).path
-        files = {"/": "index.html", "/app.js": "app.js", "/style.css": "style.css"}
+        files = {"/": "index.html", "/app.js": "app.js", "/style.css": "style.css", "/video": "video.html", "/video.js": "video.js"}
         if path not in files:
             return self._reply(404, {"error": "Not found"})
         blob = (STATIC / files[path]).read_bytes()
@@ -99,6 +100,35 @@ class Handler(BaseHTTPRequestHandler):
                     if len(data)>1_000_000:raise ValueError("Each scan file must be at most 1 MB")
                     decoded.append((name,data))
                 result=scan_bytes(decoded)
+            elif path == "/api/video/compare":
+                from .video import compare_videos
+                import shutil
+                if not shutil.which("ffmpeg") or not shutil.which("ffprobe"):
+                    return self._reply(503, {"error": "FFmpeg and ffprobe must be installed locally"})
+                samples = obj.get("samples", 8)
+                if type(samples) is not int or not 1 <= samples <= 16:
+                    raise ValueError("samples must be 1–16")
+                def decode_video(key):
+                    item = obj.get(key)
+                    if not isinstance(item, dict):
+                        raise ValueError("Two videos are required")
+                    name = item.get("name", "")
+                    if not isinstance(name, str) or not name.lower().endswith((".mp4",".mov",".webm",".mkv")):
+                        raise ValueError("Unsupported video filename")
+                    raw = base64.b64decode(item.get("base64", ""), validate=True)
+                    if not 0 < len(raw) <= 2_500_000:
+                        raise ValueError("Each video must be 2.5 MB or smaller for this local UI")
+                    return raw
+                left = decode_video("left")
+                right = decode_video("right")
+                with tempfile.TemporaryDirectory(prefix="traceproof-video-") as td:
+                    a = Path(td) / "left.mp4"
+                    b = Path(td) / "right.mp4"
+                    a.write_bytes(left)
+                    b.write_bytes(right)
+                    result = compare_videos(a, b, samples=samples)
+                    result["left"]["name"] = obj["left"]["name"]
+                    result["right"]["name"] = obj["right"]["name"]
             elif path == "/api/verify":
                 raw = base64.b64decode(obj.get("bundle_base64", ""), validate=True)
                 result = verify_bundle(raw)
