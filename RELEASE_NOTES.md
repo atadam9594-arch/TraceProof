@@ -1,54 +1,28 @@
-# TraceProof v0.11.1 — Video Lab display hotfix
+# TraceProof v0.12.0 — Benchmark Lab and repeatable evaluation
 
-- Fix Video Lab HTTP content type: `/video` now sends `text/html` rather than `text/css`, and the correct MIME type is covered by integration tests.
-- Rebuild Windows executable with full large-video handling, streaming upload progress, multilingual UI, cancellation, secure session storage and 250 MB limits introduced in v0.11.0.
-- Unit and synthetic end-to-end tests verify the local HTTP flow. No independent false-match calibration or forensic certification is claimed.
-
----
-
-# TraceProof v0.11.0 — Large-file local Video Lab
-
-Released as an **unsigned Windows desktop preview** and open-source Python application.
-
-## What changed
-
-- Replaced the browser's old 2.5 MB base64 video submission path with a **bounded, streaming upload protocol** for up to **250 MB per video**, 1 MiB per chunk. Data goes to the loopback server on the same machine, not to a cloud service.
-- New local upload sessions use unguessable tokens, declared file sizes, monotonically checked offsets, temporary storage and one active session at a time.
-- Added local transfer progress, cancellation, status polling and cleanup when processing completes or fails. Progress does not estimate the duration of FFmpeg analysis.
-- Added a local decoder dependency/capability endpoint and multilingual (English, Turkish, Spanish) status messages.
-- Kept the older short-video comparison API only for backward compatibility; the UI uses streaming.
-- Automated tests cover session validation, origin enforcement, chunk limits, cancellation, cleanup, missing tools, and complete >2.5 MB HTTP transfers. Tests also cover evidence/ProofBundle and image/text/video matching.
-- Windows GitHub Actions creates a self-contained `TraceProof.exe`, smoke-tests localhost pages and publishes the pre-release with a SHA-256 checksum.
-
-## Installation
-
-Download the Windows executable and checksum from [v0.11.0 Releases](https://github.com/atadam9594-arch/TraceProof/releases/tag/v0.11.0). Alternatively install Python requirements and run `python -m traceproof desktop`. FFmpeg/ffprobe are not bundled with the Windows binary.
-
-## Scope and cautions
-
-The video feature compares candidate similarities only: it cannot prove media provenance, detect all modifications, or identify AI-generated content reliably. No real-world precision/recall percentage is claimed. Unsupported codecs, corrupt media, sparse sampling and misleading perceptual hashes remain limitations. The Windows preview is unsigned, not an installer or security-reviewed production release. Temporary media is stored only on the local machine and removed after session cleanup; case exports may contain sensitive notes and hashes.
+- New browser-based **Benchmark Lab** for visualizing independently labeled video-pair results; English, Turkish and Spanish. Reads local JSON without sending it to any server.
+- Reproducible command-line benchmarking now includes data-set-specific confidence intervals (95% Wilson), per-group confusion matrices and transparent error/coverage reporting.
+- **Memoized video fingerprints** in a benchmark run; repeated source videos are decoded once per run rather than once per pair. `--no-cache` is available to compare workloads.
+- New self-contained, escaped offline HTML report via `video-benchmark --html report.html` and optional result JSON output.
+- Unit/integration tests for cache hits, cache-disabled mode, failed decodes, Wilson bounds, per-group metrics, malformed input, cross-site escaping and the HTML/JS/CSS routes.
+- Release remains an **unsigned Windows research preview**, with FFmpeg and ffprobe supplied separately. No representative real-world validation set is included; **no accuracy percentage is claimed for production data**.
 
 ---
 
-# TraceProof v0.10.0 — Desktop preview and cautious video matching
+# TraceProof v0.10.0 — desktop preview and conservative video analysis
 
-- Windows executable preview automatically built by GitHub Actions, downloadable as `TraceProof-Windows-Preview` after successful builds. It opens the loopback-only web app in the user's default browser using an available dynamic port. It is unsigned and does not include FFmpeg.
-- Python desktop launcher: `python -m traceproof desktop`.
-- Video fingerprint engine v2: complete-file SHA-256, entropy filtering of low-detail frames, ordered one-to-one frame matching and minimum visually distinct frame evidence for candidate overlaps.
-- Offline, escaped, no-script HTML comparison report: `video-compare LEFT RIGHT --samples 16 --html report.html`.
-- Automated pure-Python unit tests, Windows build validation, and repeatable synthetic FFmpeg scenarios with re-encoding and negative control.
-- **No accuracy percentage, authenticity claim, editing direction or AI-author decision is implied.** Only a preview; no independent security audit.
+- Added a native-compatible launcher (`desktop_launcher.py`, `python -m traceproof desktop`) which opens the localhost workspace in the default browser. The server binds to a random free loopback port; no account or cloud deployment is required.
+- Added GitHub Actions Windows executable build (`Build Windows desktop preview`), producing a downloadable `TraceProof-Windows-Preview` artifact after a successful Windows build. Windows executables are **unsigned preview builds**, not production-approved installers. FFmpeg remains a separate optional video analysis prerequisite.
+- Strengthened video comparison: SHA-256 identifies byte-identical files; comparison of nonidentical files now uses only informative frames, aligns frame pairs in chronological order, prevents reuse of one frame as many matches, and requires at least two visually diverse matched frames for a similarity candidate.
+- Reduced misleading matches from blank/low-detail frames. These methods are heuristic and need representative datasets before any accuracy claims.
+- Added standalone, HTML-escaped offline video reports from CLI (`video-compare FIRST SECOND --html report.html`), with clear evidence limitations.
+- Added repeatable synthetic FFmpeg regression scenarios, including reencoded videos and unrelated flat video.
+- Added unit tests for algorithm safeguards, HTML escaping, and desktop launch path.
 
----
+## Known limitations
 
-# v0.7.0 — Local comparison workspace
-
-- Added a bilingual/trilingual file comparison panel integrated into the existing web UI.
-- Added `POST /api/compare` with strict 3 MB per-file limits, JSON payload validation and localhost-only origin checks.
-- Refactored file comparison to support in-memory bytes, retaining the existing CLI and scan functionality.
-- Added integration tests for the local HTTP comparison endpoint and text normalization.
-
-## Limitations
-- Browser comparisons transmit bytes to the loopback HTTP server, **not** to a cloud service. Other case artifacts continue to be hashed in the browser.
-- Visual similarity requires the optional Pillow package; crop matches are heuristic and can produce false positives.
-- This is a development preview, not a forensic certification or AI-authorship detector.
+- The browser Video Lab v0.9 endpoint still accepts short files only (2.5 MB per video); the CLI can analyze local files up to 250 MB.
+- A Windows GitHub Actions build is an unsigned preview and may trigger Microsoft Defender SmartScreen. Inspect the source and build before running.
+- PyInstaller packaging does not include FFmpeg/ffprobe. Install those tools separately to enable video analysis.
+- No video similarity result establishes identity, chronology, authorship, editing direction or whether AI was involved.
+- This release has not been independently audited or calibrated on a representative real-world video corpus.
