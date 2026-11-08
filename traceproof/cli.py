@@ -37,7 +37,9 @@ def main(argv=None):
     x = sub.add_parser("lineage-scan"); x.add_argument("directory")
     x = sub.add_parser("video-analyze"); x.add_argument("video"); x.add_argument("--samples",type=int,default=12)
     x = sub.add_parser("video-compare"); x.add_argument("left"); x.add_argument("right"); x.add_argument("--samples",type=int,default=12); x.add_argument("--html")
-    x = sub.add_parser("video-benchmark"); x.add_argument("manifest"); x.add_argument("--root"); x.add_argument("--samples", type=int, default=12); x.add_argument("--out"); x.add_argument("--html"); x.add_argument("--no-cache",action="store_true")
+    x = sub.add_parser("video-benchmark"); x.add_argument("manifest"); x.add_argument("--root"); x.add_argument("--samples", type=int, default=12); x.add_argument("--out"); x.add_argument("--html"); x.add_argument("--no-cache",action="store_true"); x.add_argument("--audit-dataset")
+    x = sub.add_parser("dataset-audit"); x.add_argument("audit"); x.add_argument("--root"); x.add_argument("--benchmark-manifest"); x.add_argument("--out")
+    x = sub.add_parser("doctor"); x.add_argument("--json", action="store_true"); x.add_argument("--check", action="store_true")
     x = sub.add_parser("serve"); x.add_argument("--port", type=int, default=8765)
     sub.add_parser("desktop")
     args = p.parse_args(argv)
@@ -87,7 +89,22 @@ def main(argv=None):
             print(json.dumps(comparison,indent=2))
         elif args.cmd == "video-benchmark":
             from .benchmark import evaluate_manifest
+            audit_info = None
+            if args.audit_dataset:
+                from .dataset import audit_dataset
+                audit_info = audit_dataset(args.audit_dataset, root=args.root or Path(args.manifest).resolve().parent,
+                                           benchmark_manifest=args.manifest)
+                if not audit_info["ok"]:
+                    print(json.dumps(audit_info, indent=2, ensure_ascii=False))
+                    return 2
             result = evaluate_manifest(args.manifest, root=args.root, samples=args.samples, cache=not args.no_cache)
+            if audit_info is not None:
+                result["dataset_audit"] = {
+                    "audit_manifest_sha256": audit_info["audit_manifest_sha256"],
+                    "videos_checked": audit_info["videos_checked"],
+                    "checks_passed": audit_info["ok"],
+                    "rights_only_curator_asserted": True
+                }
             if args.html:
                 from .benchmark_report import write_benchmark_report
                 write_benchmark_report(result,args.html)
@@ -95,6 +112,29 @@ def main(argv=None):
             if args.out:
                 Path(args.out).write_text(encoded + "\n", encoding="utf-8")
             print(encoded)
+        elif args.cmd == "dataset-audit":
+            from .dataset import audit_dataset
+            report = audit_dataset(args.audit, root=args.root, benchmark_manifest=args.benchmark_manifest)
+            encoded = json.dumps(report, indent=2, ensure_ascii=False)
+            if args.out:
+                Path(args.out).write_text(encoded + "\n", encoding="utf-8")
+            print(encoded)
+            if not report["ok"]:
+                return 2
+        elif args.cmd == "doctor":
+            from .diagnostics import diagnose, guidance
+            info = diagnose()
+            if args.json:
+                print(json.dumps(info, indent=2))
+            else:
+                print("TraceProof video readiness:", "READY" if info["ready"] else "SETUP REQUIRED")
+                for key, obj in info["components"].items():
+                    print(" -", key + ":", "ready" if obj["ready"] else "missing or not usable", obj["version"] or "")
+                if not info["ready"]:
+                    for line in guidance(info["platform"]):
+                        print(" -", line)
+            if args.check and not info["ready"]:
+                return 2
         elif args.cmd == "serve":
             from .server import serve
             serve(args.port)
