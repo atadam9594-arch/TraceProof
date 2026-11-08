@@ -111,3 +111,26 @@ Current state: **public pre-release source**, not a certified forensic tool. The
 Start the local application with `python -m traceproof serve` and open **http://127.0.0.1:8765/video** (or select Video Lab on the home page). The interface supports English, Turkish and Spanish. It compares two short video files by sampling 4–16 frames and reporting perceptual-hash candidate matches. Results can be exported as JSON. The server writes media only to a temporary directory for the duration of comparison and removes those files afterward. No cloud upload is performed.
 
 **Requirements:** Python, Pillow, FFmpeg and ffprobe. Install image support with `python -m pip install -e '.[images]'` and install FFmpeg separately. The web form limits each video to **2.5 MB**, while the command-line video tools support larger local files. The local web server binds to 127.0.0.1; do not expose it to untrusted networks. Sparse frame sampling can miss edits and generate false positives. **No provenance, authenticity, editing direction or AI-generation verdict is implied.**
+
+
+## v0.10.0 — Windows desktop preview + conservative video comparison
+
+**Download desktop preview:** go to [GitHub Actions](https://github.com/atadam9594-arch/TraceProof/actions/workflows/windows-desktop.yml), open the latest successful **Build Windows desktop preview** run, and download the `TraceProof-Windows-Preview` artifact. Unzip it and run `TraceProof.exe`. It launches a browser tab using a random loopback-only port. Closing the console stops the local application. **Unsigned preview:** Windows Defender SmartScreen may show a warning. No installer, code signing or automatic updates yet.
+
+**Launch with Python** (Windows/macOS/Linux):
+
+```bash
+python -m pip install -e ".[images]"
+python -m traceproof desktop
+```
+
+**Compare videos and save a portable HTML report** (FFmpeg and ffprobe separately installed):
+
+```bash
+python -m traceproof video-compare first.mp4 second.mp4 --samples 16 --html evidence-report.html
+python scripts/video_regression.py
+```
+
+The updated video engine uses full-file SHA-256 to detect byte-identical files. For *different* files it ignores low-information frames, finds unique ordered frame matches, and requires at least two visually diverse matched frames before returning a similarity candidate. These are **conservative heuristics, not calibrated real-world accuracy estimates**. The report is offline HTML, not a cryptographically signed ProofBundle. Video Lab's browser form still limits each video to 2.5 MB; CLI accepts videos up to 250 MB. FFmpeg/ffprobe are not bundled into the Windows executable.
+
+No TraceProof result proves originality, AI authorship, modification, chronology or a source identity. This is still an open-source pre-release.
