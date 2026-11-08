@@ -30,3 +30,4 @@ jobs:
           ffmpeg -version
           ffprobe -version
           python scripts/video_regression.py
+          python scripts/upload_regression.py
