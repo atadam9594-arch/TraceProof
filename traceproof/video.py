@@ -14,6 +14,7 @@ import shutil
 import subprocess
 
 from .lineage import image_hash, image_distance
+from .diagnostics import find_binary
 
 MAX_VIDEO_BYTES = 250_000_000
 MAX_DURATION = 3600
@@ -53,11 +54,11 @@ def fingerprint_video(path, samples=12):
         raise ValueError("Invalid video or file exceeds 250 MB")
     if type(samples) is not int or not 1 <= samples <= MAX_SAMPLES:
         raise ValueError("Samples must be between 1 and 32")
-    if not shutil.which("ffmpeg") or not shutil.which("ffprobe"):
+    if not find_binary("ffmpeg") or not find_binary("ffprobe"):
         raise RuntimeError("ffmpeg and ffprobe are required for video analysis")
 
     metadata = json.loads(_run([
-        "ffprobe", "-v", "error", "-protocol_whitelist", "file,pipe",
+        find_binary("ffprobe"), "-v", "error", "-protocol_whitelist", "file,pipe",
         "-show_entries", "format=duration", "-of", "json", str(p)
     ], timeout=10))
     try:
@@ -71,7 +72,7 @@ def fingerprint_video(path, samples=12):
     for i in range(samples):
         second = round(duration * (i + .5) / samples, 3)
         png = _run([
-            "ffmpeg", "-nostdin", "-hide_banner", "-loglevel", "error",
+            find_binary("ffmpeg"), "-nostdin", "-hide_banner", "-loglevel", "error",
             "-protocol_whitelist", "file,pipe", "-ss", str(second), "-i", str(p),
             "-frames:v", "1", "-vf", "scale=160:90:force_original_aspect_ratio=decrease",
             "-f", "image2pipe", "-vcodec", "png", "pipe:1"
