@@ -49,7 +49,7 @@ jobs:
               }
               if (Test-Path $stdout) {
                 $log = Get-Content $stdout -Raw
-                if ($log -match 'http://127\\.0\\.0\\.1:\\d+/') {
+                if ($log -match 'http://127\.0\.0\.1:\d+/') {
                   $url = $Matches[0]
                   try {
                     $response = Invoke-WebRequest -Uri $url -UseBasicParsing -TimeoutSec 3
