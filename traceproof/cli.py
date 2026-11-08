@@ -36,8 +36,9 @@ def main(argv=None):
     x = sub.add_parser("compare"); x.add_argument("left"); x.add_argument("right")
     x = sub.add_parser("lineage-scan"); x.add_argument("directory")
     x = sub.add_parser("video-analyze"); x.add_argument("video"); x.add_argument("--samples",type=int,default=12)
-    x = sub.add_parser("video-compare"); x.add_argument("left"); x.add_argument("right")
+    x = sub.add_parser("video-compare"); x.add_argument("left"); x.add_argument("right"); x.add_argument("--samples",type=int,default=12); x.add_argument("--html")
     x = sub.add_parser("serve"); x.add_argument("--port", type=int, default=8765)
+    sub.add_parser("desktop")
     args = p.parse_args(argv)
     try:
         if args.cmd == "new":
@@ -78,10 +79,17 @@ def main(argv=None):
             print(json.dumps(fingerprint_video(args.video,args.samples),indent=2))
         elif args.cmd == "video-compare":
             from .video import compare_videos
-            print(json.dumps(compare_videos(args.left,args.right),indent=2))
+            comparison=compare_videos(args.left,args.right,samples=args.samples)
+            if args.html:
+                from .report import write_video_report
+                write_video_report(comparison,args.html)
+            print(json.dumps(comparison,indent=2))
         elif args.cmd == "serve":
             from .server import serve
             serve(args.port)
+        elif args.cmd == "desktop":
+            from .desktop import launch
+            return launch()
         return 0
     except (InvalidCase, ValueError, OSError, RuntimeError) as e:
         print("TraceProof error:", e, file=sys.stderr)
