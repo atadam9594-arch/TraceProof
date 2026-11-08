@@ -204,6 +204,8 @@ class UploadHttpTests(unittest.TestCase):
         for resource,expected in [('/video',b'250 MB'),('/video.js',b'/api/video/chunk'),('/video.css',b'#progress')]:
             with self.subTest(path=resource),urlopen(self.base+resource,timeout=5) as r:
                 self.assertEqual(r.status,200)
+                if resource == '/video':
+                    self.assertIn('text/html',r.headers.get('Content-Type',''))
                 self.assertIn(expected,r.read())
 
 
