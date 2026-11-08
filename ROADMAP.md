@@ -1,3 +1,20 @@
+# Primary mission: AI-generated content detection
+
+**User outcome:** Upload or select text, image, audio, video or software/document files and assess whether they were AI-generated, AI-assisted, or cannot be determined. Always expose evidence, limitations and uncertainty. The past v0.3–v0.14 evidence / media graph development is supporting infrastructure, **not the primary product**.
+
+## Development direction (v0.15 and beyond)
+
+1. **Provenance foundation (started):** interpret verified C2PA actions and optional origin-specific watermark APIs with explicit user consent. Signed claims must be validated against trustworthy certificate/issuer policy, not merely trusted because JSON says so. Missing signals always mean unknown, never human-created.
+2. **Media-specific detection models:** image AI-generation detector(s), sampled-video/frame analyses, synthetic voice/audio detector(s), and text/structured file classifiers. Every model must disclose origin, license, version, supported languages/codecs, calibration set and conditions where it abstains.
+3. **Controlled benchmarks:** human vs synthetic pairs from sources not used in training; model-family holdout; recompression, screenshots, crop, translation and paraphrase tests; stratified false-positive rates, uncertainty intervals and population drift tests.
+4. **Honest multimodal synthesis:** separate strong signed provenance from fallible ML signals, never add independent-looking scores from correlated evidence, and offer *uncertain / insufficient evidence* as a first-class result.
+5. **Unified UI:** select/upload artifact → modality identification → evidence provenance/model adapters → source-linked decision report → optional ProofBundle; default English with fully localized Turkish/Spanish views, opt-in cloud adapters only.
+6. **Security and accessibility:** local-first runtime by default, trusted dependency provision, constrained file decoders, personal-data handling, code signing and independent audits.
+
+**Do not promise 100% detection of every AI-generated item.** An unknown generator, new model, AI-edited human material, and stripped C2PA signatures create irreducible uncertainty.
+
+---
+
 # Current milestone: v0.14.0 (delivered)
 
 - Local multi-video relationship network (2–12 videos), bounded resource usage, cached one-pass fingerprints, and exact/heuristic edge distinction.
