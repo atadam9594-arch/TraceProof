@@ -39,6 +39,7 @@ def main(argv=None):
     x = sub.add_parser("video-compare"); x.add_argument("left"); x.add_argument("right"); x.add_argument("--samples",type=int,default=12); x.add_argument("--html")
     x = sub.add_parser("video-benchmark"); x.add_argument("manifest"); x.add_argument("--root"); x.add_argument("--samples", type=int, default=12); x.add_argument("--out"); x.add_argument("--html"); x.add_argument("--no-cache",action="store_true"); x.add_argument("--audit-dataset")
     x = sub.add_parser("dataset-audit"); x.add_argument("audit"); x.add_argument("--root"); x.add_argument("--benchmark-manifest"); x.add_argument("--out")
+    x = sub.add_parser("ai-check"); x.add_argument("file"); x.add_argument("--c2pa-report"); x.add_argument("--allow-external-provenance", action="store_true")
     x = sub.add_parser("video-network"); x.add_argument("directory"); x.add_argument("--samples", type=int, default=8); x.add_argument("--max-videos", type=int, default=12); x.add_argument("--out"); x.add_argument("--html")
     x = sub.add_parser("ffmpeg-register"); x.add_argument("--dir", required=True)
     sub.add_parser("ffmpeg-forget")
@@ -124,6 +125,10 @@ def main(argv=None):
             print(encoded)
             if not report["ok"]:
                 return 2
+        elif args.cmd == "ai-check":
+            from .ai_origin import assess_file
+            result = assess_file(args.file, report_json=args.c2pa_report, allow_external_provenance=args.allow_external_provenance)
+            print(json.dumps(result, ensure_ascii=False, indent=2))
         elif args.cmd == "video-network":
             from .video_network import scan_video_network, save_network_report
             graph = scan_video_network(args.directory, samples=args.samples, max_videos=args.max_videos)
