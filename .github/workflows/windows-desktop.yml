@@ -97,7 +97,7 @@ jobs:
     permissions:
       contents: write
     concurrency:
-      group: traceproof-v0.11.0-release
+      group: traceproof-v0.11.1-release
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
@@ -112,16 +112,18 @@ jobs:
           set -euo pipefail
           test -s release/TraceProof.exe
           (cd release && sha256sum TraceProof.exe > TraceProof.exe.sha256)
-          if gh release view v0.11.0 >/dev/null 2>&1; then
-            echo "v0.11.0 already published; not replacing released assets"
+          if gh release view v0.11.1 >/dev/null 2>&1; then
+            echo "v0.11.1 already published; not replacing released assets"
             exit 0
           fi
           {
-            echo '# TraceProof v0.11.0 — Windows preview'
+            echo '# TraceProof v0.11.1 — Windows preview'
             echo 'Unsigned early-access build. The packaged app was smoke-tested over localhost before release.'
             echo 'Unzip TraceProof.exe and run it. Closing its console stops the app.'
             echo 'Windows SmartScreen may warn because the executable is not code signed.'
             echo 'FFmpeg and ffprobe are not included and are needed for video analysis.'
+            echo 'Video Lab supports up to 250 MB per file in temporary 1 MiB localhost chunks; cancel may wait for decoding to finish.'
+            echo 'This release corrects the /video HTML content type to text/html.'
             echo 'A SHA-256 checksum is included. Similarity does not prove authenticity or AI authorship.'
           } > release-notes.md
-          gh release create v0.11.0 release/TraceProof.exe release/TraceProof.exe.sha256 --target "$GITHUB_SHA" --title "TraceProof v0.11.0 (preview)" --prerelease --notes-file release-notes.md
+          gh release create v0.11.1 release/TraceProof.exe release/TraceProof.exe.sha256 --target "$GITHUB_SHA" --title "TraceProof v0.11.1 (preview)" --prerelease --notes-file release-notes.md
