@@ -5,6 +5,7 @@ validate those labels and never represents dataset metrics as general accuracy.
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 import time
@@ -78,8 +79,9 @@ def evaluate_manifest(manifest: str | Path, *, root: str | Path | None = None,
                       samples: int = 12, comparator=None):
     if type(samples) is not int or not 1 <= samples <= 32:
         raise ValueError('Samples must be an integer between 1 and 32')
-    manifest_path = Path(manifest).resolve(strict=True)
-    data = load_manifest(manifest_path)
+    manifest_input = Path(manifest)
+    data = load_manifest(manifest_input)
+    manifest_path = manifest_input.resolve(strict=True)
     dataset_root = Path(root).resolve(strict=True) if root is not None else manifest_path.parent
     if not dataset_root.is_dir():
         raise ValueError('Dataset root must be a directory')
@@ -118,7 +120,9 @@ def evaluate_manifest(manifest: str | Path, *, root: str | Path | None = None,
         'accuracy':_rate(tp+tn,evaluated), 'coverage':_rate(evaluated,len(records)),
         'elapsed_seconds':round(time.monotonic()-start, 3)
     }
-    return {'schema':RESULT_SCHEMA,'manifest_schema':MANIFEST_SCHEMA, 'samples':samples,
+    manifest_sha256 = hashlib.sha256(manifest_path.read_bytes()).hexdigest()
+    return {'schema':RESULT_SCHEMA,'manifest_schema':MANIFEST_SCHEMA,
+            'manifest_sha256':manifest_sha256, 'samples':samples,
             'summary':summary, 'pairs':records, 'limitations':[
                 'Labels are supplied by the dataset curator and not independently verified',
                 'Metrics describe only the submitted dataset; no universal accuracy is claimed',
