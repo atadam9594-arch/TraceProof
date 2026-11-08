@@ -26,6 +26,7 @@ jobs:
           node --check traceproof/static/video.js
           node --check traceproof/static/benchmark.js
           node --check traceproof/static/setup.js
+          node --check traceproof/static/network.js
       - name: FFmpeg and real local-video regression scenarios
         if: matrix.python-version == '3.12'
         run: |
@@ -35,3 +36,4 @@ jobs:
           python scripts/upload_regression.py
           python scripts/benchmark_regression.py
           python scripts/dataset_audit_regression.py
+          python scripts/video_network_regression.py
