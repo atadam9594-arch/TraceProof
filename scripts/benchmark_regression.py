@@ -43,7 +43,7 @@ def main():
         # should surface genuine false negatives instead of hiding them.
         if outcomes['exact']['relation'] != 'byte_identical' or outcomes['negative-flat']['predicted_overlap']:
             raise AssertionError(f'Synthetic fixture invariants failed: {outcomes}')
-        if summary['errors'] or summary['evaluated'] != 3:
+        if summary['errors'] or summary['evaluated'] != 3 or summary['unique_decodes'] != 4 or summary['fingerprint_cache_hits'] != 2:
             raise AssertionError(f'Synthetic benchmark could not evaluate all pairs: {summary}')
         print(json.dumps({'kind':'synthetic smoke test only — not real-world accuracy',
                           'summary':summary,'pairs':result['pairs']},indent=2))
